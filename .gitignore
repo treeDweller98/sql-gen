@@ -1,7 +1,10 @@
 .venv
 /__pycache__
 agents/__pycache__
+core/__pycache__
 
+/temp
 /data
 /results
 api_keys.py
+sql-gen.ipynb
