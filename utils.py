@@ -17,11 +17,12 @@ from config import (
     OUTPUT_PATH,
     BIRD_QUESTION_FILENAME, 
     DATABASES_FOLDERNAME, 
-    IS_USE_FULL_DB, 
+    USE_FULL_DB, 
     USE_CACHED_SCHEMA,
+    USE_DEBUG_DATASET,
     MODEL, 
     IS_INFERENCING_LOCALLY,
-    IS_DEBUG, 
+    MODEL_DEBUG_MODE, 
     EXPERIMENT,
     IS_PRINT_TO_FILE,
 )
@@ -37,7 +38,7 @@ def read_dataset() -> tuple[pd.DataFrame, list[str], dict[str, SQLiteDatabase]]:
     """
     df = pd.read_json(INPUT_PATH / BIRD_QUESTION_FILENAME)
 
-    if IS_USE_FULL_DB:
+    if USE_FULL_DB:
         db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
     else:
         db_names: list[str] = ['formula_1', 'debit_card_specializing', 'thrombosis_prediction']
@@ -47,6 +48,9 @@ def read_dataset() -> tuple[pd.DataFrame, list[str], dict[str, SQLiteDatabase]]:
         db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), USE_CACHED_SCHEMA) 
         for db_id in db_names
     }
+
+    if USE_DEBUG_DATASET:
+        df = df.head()
 
     print(f'{db_names=}, {len(df)=}')
     return df, db_names, databases
@@ -96,7 +100,7 @@ def initialise_experiment():
         serve_ollama()
 
     # TODO: make use of api_key and base_url for cloud-hosted ollama
-    llm = LLM(MODEL, is_debug=IS_DEBUG, api_key=OPENAI_API_KEY, base_url=None)
+    llm = LLM(MODEL, is_debug=MODEL_DEBUG_MODE, api_key=OPENAI_API_KEY, base_url=None)
 
     # TODO: look up proper default values for Ollama and OpenAI
     if MODEL in SupportedModels.Ollama:
@@ -108,7 +112,7 @@ def initialise_experiment():
 
     evaluator = EvaluatorForBIRD(databases)
 
-    return df.head(), db_names, databases, llm, cfg, evaluator
+    return df, db_names, databases, llm, cfg, evaluator
 
 
 def cleanup_experiment(df: pd.DataFrame, results: str):
