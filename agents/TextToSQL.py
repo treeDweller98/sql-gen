@@ -1,11 +1,11 @@
 import re
+import json
 import sqlite3
+from pathlib import Path
 from abc import ABC
 from collections.abc import Callable
-
 from tqdm import tqdm
 import pandas as pd
-
 from core.SQLiteDatabase import SQLiteDatabase
 from core.Model import LLM, GenerationConfig
 
@@ -17,7 +17,7 @@ class TextToSQL(ABC):
 
     def __init__(
         self, llm: LLM, databases: dict[str, SQLiteDatabase], 
-        dump_to_json: Callable[[str, list], None] = False,
+        output_path: Path,
     ) -> None:
         """ Attributes
             ----------
@@ -25,20 +25,22 @@ class TextToSQL(ABC):
                     Text generation model, hosted locally or on the cloud.
                 databases: dict[str, SQLiteDatabase]
                     Dictionary of SQLiteDatabases indexed by db_id
-                __dump_to_json: Callable[[str, list[str]], None]
-                    function that dumps a list of output to a filename.json; use to save output
+                output_path: Path
+                    Directory to dump output json
         """
         self.llm = llm
         self.databases = databases
-        self.__dump_to_json = dump_to_json
-        self.__agent_name = f"{self.llm}_{self.__class__.__name__}"
+        self.output_path = output_path
+        self.agent_name = f"{self.llm}_{self.__class__.__name__}"
 
     def generate_response(self, schema: str, question: str, cfg: GenerationConfig) -> str:
         """ Takes a natural language question and db_schema, returns the generated raw response containing the final SQL. """
         raise NotImplementedError
     
-    def batched_generate(self, df: pd.DataFrame, cfg: GenerationConfig) -> list[str]:
-        """ Generates raw responses for a DataFrame of BIRD questions. """
+    def batched_generate(self, df: pd.DataFrame, cfg: GenerationConfig, savename: str = None) -> list[str]:
+        """ Runs generate_response() on a DataFrame of BIRD questions. 
+            If savename is given, saves parsed SQL to savename_raw.json
+        """
         raise NotImplementedError
 
     def auto_parse_sql(self, response: str) -> str:
@@ -74,13 +76,23 @@ class TextToSQL(ABC):
 
         return matched
 
-    def batched_parse_sql(self, raw_responses: list[str]) -> list[str]:
-        """ . """
-        cleaned_sql = []
-        for response in tqdm(raw_responses, desc=f'{self.__agent_name} Parsing SQL', total=len(raw_responses)):
-            sql = self.auto_parse_sql(response)    
-            cleaned_sql.append(sql)
-        return cleaned_sql
+    def batched_parse_sql(self, raw_responses: list[str], savename: str = None) -> list[str]:
+        """ Extracts SQL from LLM responses using auto_parse_sql(). 
+            If savename is given, saves parsed SQL to savename_clean.json
+        """
+        parsed_sql = []
+        for response in tqdm(raw_responses, desc=f'{self.agent_name} Parsing SQL', total=len(raw_responses)):
+            try:
+                sql = self.auto_parse_sql(response)    
+                parsed_sql.append(sql)
+            except Exception as e:
+                self.dump_to_json_on_error(parsed_sql)
+                raise e
+
+        if savename:
+            self.dump_to_json(f"{savename}_clean", parsed_sql)
+
+        return parsed_sql
     
     def is_sql_same(self, db_id: str, query_1: str, query_2: str) -> bool:
         """ Executes SQL queries and returns True if outputs match, with no operation errors. """
@@ -93,7 +105,14 @@ class TextToSQL(ABC):
         else:
             return set(res_1) == set(res_2)
         
+    def dump_to_json(self, filename: str, obj: object) -> None:
+        """ Dumps a list of objects to self.output_path/filename.json; use for keeping backups. """
+        filepath = self.output_path / f"{filename}.json"
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with open(filepath, 'w') as f:
+            json.dump(obj, f, ensure_ascii=False, indent=4)
+        
     def dump_to_json_on_error(self, raw_responses: list[str]) -> None:
         """ Dumps raw responses into a json file; used in case of errors interrupting batched generation. """
-        filename = f"{self.__agent_name}_error_bak.json"
-        self.__dump_to_json(filename, raw_responses)
+        filename = f"{self.agent_name}_error_bak.json"
+        self.dump_to_json(filename, raw_responses)

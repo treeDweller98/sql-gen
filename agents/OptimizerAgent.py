@@ -34,12 +34,12 @@ class OptimizerAgent(TextToSQL):
         )
         return reply
     
-    def batched_generate(self, df: pd.DataFrame, pred_col: str, cfg: GenerationConfig) -> list[str]:
+    def batched_generate(self, df: pd.DataFrame, pred_col: str, cfg: GenerationConfig, savename: str = None) -> list[str]:
         assert {'db_id', 'question', 'evidence', pred_col}.issubset(df.columns), \
         f"Ensure {'db_id', 'question', 'evidence', '{pred_col}'} in df.columns"
         
         raw_responses: list[str] = []
-        for i, row in tqdm(df.iterrows(), desc=f'{self.__agent_name} Generating SQL', total=len(df)):
+        for i, row in tqdm(df.iterrows(), desc=f'{self.agent_name} Generating SQL', total=len(df)):
             db = self.databases[ row['db_id'] ]
             schema = str(db)
             question = f"{row['question']}  Hint: {row['evidence']}"
@@ -50,4 +50,8 @@ class OptimizerAgent(TextToSQL):
             except Exception as e:
                 self.dump_to_json_on_error(raw_responses)
                 raise e
+            
+        if savename:
+            self.dump_to_json(f"{savename}_raw", raw_responses)
+
         return raw_responses
