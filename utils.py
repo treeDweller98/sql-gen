@@ -1,135 +1,99 @@
-import sys
-import time
-import warnings
-import subprocess
-import json
-from typing import Optional
-
 import pandas as pd
+from vllm import LLM, SamplingParams
+from config import *
+from core.dbhandler import SQLiteDatabase
+from core.birdeval import evaluate
+from sqlgen.base_agent import TextToSQL
 
-from core.SQLiteDatabase import SQLiteDatabase
-from core.Model import SupportedModels, GenerationConfig, LLM
-from core.EvaluatorForBIRD import EvaluatorForBIRD
-
-from api_keys import OPENAI_API_KEY
-from config import (
-    INPUT_PATH,
-    OUTPUT_PATH,
-    BIRD_QUESTION_FILENAME, 
-    DATABASES_FOLDERNAME, 
-    USE_FULL_DB, 
-    USE_CACHED_SCHEMA,
-    USE_DEBUG_DATASET,
-    MODEL, 
-    IS_INFERENCING_LOCALLY,
-    MODEL_DEBUG_MODE, 
-    EXPERIMENT,
-    IS_PRINT_TO_FILE,
-)
 
 ### BIRD Dataset Reader Function ###
 def read_dataset() -> tuple[pd.DataFrame, list[str], dict[str, SQLiteDatabase]]:
     """ BIRD dataset reader function.
         1. Reads dataset into DataFrame from "INPUT_PATH/BIRD_QUESTION_FILENAME".
         2. Lists database names from folders in "INPUT_PATH/DB_FOLDERNAME/".
-        3. If IS_USE_FULL_DB is False, returns debug subset of databases
+        3. If USE_DEBUG_DB, returns debug subset of databases
            ['formula_1', 'debit_card_specializing', 'thrombosis_prediction'].
-        4. Creates dict of SQLiteDatabases, indexed by db_name.
+        4. If USE_DEBUG_DATASET, returns first 5 DataFrame rows only.
+        5. Creates dict of SQLiteDatabases, indexed by db_name.
+        Returns df of BIRD questions, db_names, and dict of databases.
     """
     df = pd.read_json(INPUT_PATH / BIRD_QUESTION_FILENAME)
-
-    if USE_FULL_DB:
-        db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
-    else:
+    if USE_DEBUG_DB:
         db_names: list[str] = ['formula_1', 'debit_card_specializing', 'thrombosis_prediction']
         df = df[df['db_id'].isin(db_names)]
-
+    else:
+        db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
+    if USE_DEBUG_DATASET:
+        df = df.head(15)
     databases: dict[str, SQLiteDatabase] = {
-        db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), USE_CACHED_SCHEMA) 
+        db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), DB_EXEC_TIMEOUT, USE_CACHED_SCHEMA) 
         for db_id in db_names
     }
-
-    if USE_DEBUG_DATASET:
-        df = df.head()
-
     print(f'{db_names=}, {len(df)=}')
-    return df, db_names, databases
+    return df, databases
 
 
-### Deploy Ollama ###
-def serve_ollama() -> None:
-    """ Serves ollama if not already running and pulls model. """
-    def is_ollama_up() -> bool:
-        pname = 'ollama'
-        try:
-            call = subprocess.check_output(f"pidof {pname}", shell=True)
-            return True
-        except subprocess.CalledProcessError:
-            return False
-        
-    if is_ollama_up():
-        warnings.warn("Ollama already running. Proceeding without re-deployment...")
-    else:
-        process = subprocess.Popen(
-            "ollama serve",
-            shell=True,
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE
-        )
-        time.sleep(5)
-        print(f"Ollama deployed (PID: {process.pid}).")
+
+def setup_experiment():
+    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+    df, databases = read_dataset()
+    cfg = SamplingParams(
+        temperature=0,
+        top_p=1,
+        repetition_penalty=1.1,
+        max_tokens=4096,
+    )
+    llm = LLM(
+        MODEL,
+        gpu_memory_utilization=GPU_MEMORY_UTILIZATION,
+        tensor_parallel_size=TENSOR_PARALLEL_SIZE,
+        max_model_len=MODEL_MAX_SEQ_LEN,
+        max_seq_len_to_capture=MODEL_MAX_SEQ_LEN,
+        kv_cache_dtype=KV_CACHE_DTYPE,
+        seed=SEED,
+    )
+    return df, databases, cfg, llm
 
 
-def pull_ollama_model(model: SupportedModels.Ollama) -> None:
-    """ Use if you need to manually pull a model locally. """
-    subprocess.check_call(f"ollama pull {model.value}", shell=True)
+def agent_baseline(
+    agent: TextToSQL, cfg: SamplingParams, df: pd.DataFrame, 
+    batch_size: int, name: str, **kwargs
+) -> tuple[pd.DataFrame, str]:
+    
+    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL}_{EXPERIMENT}")
+    
+    outputs = agent.batched_generate(df, cfg, batch_size, name, **kwargs)
+
+    df[f'input_prompts_{name}'] = outputs.input_prompts
+    df[f'n_in_tokens_{name}']   = outputs.n_in_tokens
+    df[f'raw_responses_{name}'] = outputs.raw_responses
+    df[f'n_out_tokens_{name}']  = outputs.n_out_tokens
+    df[f'parsed_sql_{name}']    = outputs.parsed_sql
+    
+    labels, report = evaluate(df, agent.databases, DB_EXEC_TIMEOUT, f'parsed_sql_{name}')
+    df[f'label_{name}'] = labels
+    
+    with open(OUTPUT_PATH/f'results_{name}.txt', 'w') as f:
+        f.write(report)
+    df.to_json(OUTPUT_PATH/f'df_{name}.json', orient='records')
+    
+    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL}_{EXPERIMENT} Successfully Completed.\n\n\n")
+    return df
 
 
-### Experiment Setup ###
-def initialise_experiment():
-    """ Initialises experiment according to settings in config.py"""
-    # TODO: use a proper logger instead of hacking print()
-    if IS_PRINT_TO_FILE:
-        global temp_sys_stdout
-        temp_sys_stdout = sys.stdout
-        sys.stdout = open(OUTPUT_PATH / 'output.txt', 'wt')   # logs all prints in the output directory
-    print(f"Experiment: {MODEL.value}_{EXPERIMENT}")
-
-    # TODO: extend for use with multiple models at once
-    if IS_INFERENCING_LOCALLY and MODEL in SupportedModels.Ollama:
-        serve_ollama()
-
-    # TODO: make use of api_key and base_url for cloud-hosted ollama
-    llm = LLM(MODEL, is_debug=MODEL_DEBUG_MODE, api_key=OPENAI_API_KEY, base_url=None)
-
-    # TODO: look up proper default values for Ollama and OpenAI
-    if MODEL in SupportedModels.Ollama:
-        cfg = GenerationConfig(temperature=0.7, top_p=1, max_tokens=2048, num_ctx=4096*8, seed=42)
-    else:
-        cfg = GenerationConfig(temperature=0.7, top_p=1, max_tokens=2048)
-
-    df, db_names, databases = read_dataset()
-
-    evaluator = EvaluatorForBIRD(databases)
-
-    return df, db_names, databases, llm, cfg, evaluator
 
 
-def cleanup_experiment(df: pd.DataFrame, results: str):
-    df.to_json(OUTPUT_PATH / 'final_df.json', orient='records')
-    with open( OUTPUT_PATH / 'results.txt', 'w') as f:
-        f.write(results)
+# from sqlgen.zeroshot import ZeroShotAgent, MetaPromptZeroShotAgent, OptimizerAgent
 
-    print(f"Experiment Completed: {MODEL.value}_{EXPERIMENT}")
-    print(results)
-    if IS_PRINT_TO_FILE:
-        sys.stdout = temp_sys_stdout
+# def run_baseline(df, databases, cfg, llm, output_path, batch_size):
+    
+#     agent_zs = ZeroShotAgent(llm, databases, output_path)
+#     agent_mp = MetaPromptZeroShotAgent(llm, databases, output_path)
+#     agent_op = OptimizerAgent(llm, databases, output_path)
 
+#     df = agent_baseline(agent_zs, cfg, df, batch_size, 'zs')
+#     df = agent_baseline(agent_op, cfg, df, batch_size, 'opzs', pred_col='pred_zs')
+#     df = agent_baseline(agent_mp, cfg, df, batch_size, 'mp')
+#     df = agent_baseline(agent_op, cfg, df, batch_size, 'opmp', pred_col='pred_mp')
 
-### General Utility functions ###
-def dump_to_json(filename: str, objects: list) -> None:
-    """ Dumps a list of objects to OUTPUT_PATH/filename.json; use for keeping backups. """
-    filepath = OUTPUT_PATH / f"{filename}.json"
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    with open(filepath, 'w') as f:
-        json.dump(objects, f, ensure_ascii=False, indent=4)
+#     df.to_json(output_path / 'final_df.json', orient='records')
