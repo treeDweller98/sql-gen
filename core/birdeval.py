@@ -3,7 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 from core.dbhandler import SQLiteDatabase
 
-def get_correctness_labels(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str, timeout: float) -> list[bool]:
+def get_correctness_labels(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str) -> list[bool]:
     ''' Takes DataFrame of BIRD questions with prediction column.
         Runs gold and predicted SQL queries on databases given.
         Returns labels, where labels[i] is True where pred_sql results same as ground_sql's
@@ -12,7 +12,7 @@ def get_correctness_labels(df: pd.DataFrame, databases: dict[str, SQLiteDatabase
     for i, question in tqdm(df.iterrows(), desc='Executing SQL', total=len(df)):
         db = databases[question['db_id']]
         try:
-            pred_res = db.run_query(question[pred_col], timeout=timeout)
+            pred_res = db.run_query(question[pred_col])
             true_res = db.run_query(question[true_col])
         except Exception as e:
             print(f"Q_{question['question_id']}: {e.__class__.__name__} {e}")
@@ -22,7 +22,7 @@ def get_correctness_labels(df: pd.DataFrame, databases: dict[str, SQLiteDatabase
     return labels
 
 
-def calculate_accuracy(df: pd.DataFrame, pred_col: str, true_col: str, labels: list[bool] = None) -> str:
+def calculate_accuracy(df: pd.DataFrame, pred_col: str, true_col: str, labels: list[bool]) -> str:
     ex_report = (
         f"=== EX Results | TrueCol: {true_col} | PredCol: {pred_col} ===\n"
         f"Accuracy : {(sum(labels) / len(labels)) * 100: .3f}%\n"
@@ -48,9 +48,9 @@ def calculate_rves():
     raise NotImplementedError
 
     
-def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], timeout: float, pred_col: str, true_col: str = 'SQL') -> tuple[list[bool], str]:
+def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = 'SQL') -> tuple[list[bool], str]:
     print(f'\n--- Evaluating Performance | TrueCol: {true_col} | PredCol: {pred_col} ---')
-    labels = get_correctness_labels(df, databases, pred_col, true_col, timeout)
+    labels = get_correctness_labels(df, databases, pred_col, true_col)
     ex_report = calculate_accuracy(df, pred_col, true_col, labels)
     # f1_report = calculate_softf1(df, pred_col, true_col, labels)
     # ves_report = calculate_ves(df, pred_col, true_col, labels)

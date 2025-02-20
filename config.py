@@ -16,7 +16,7 @@ EXPERIMENT = [
     'zero-meta-optim-unaug',
 ][0]
 
-MODEL = SupoortedModels.qwen25_coder_14b_instruct_awq.value       # TODO: make this settable from bash somehow maybe?
+MODEL = SupoortedModels.qwen25_coder_14b_instruct_awq       # TODO: make this settable from bash somehow maybe?
 GPU_MEMORY_UTILIZATION = 0.97
 TENSOR_PARALLEL_SIZE = 2                # set equal to number of GPU               
 MODEL_MAX_SEQ_LEN = 4096 * 1            # 4096*2 is max for 14B AWQ model with fp8 KV-cache on 15GB VRAM 
@@ -26,12 +26,12 @@ SEED = 42
 
 
 INPUT_PATH  = Path(f'/kaggle/working/bird-bench/bird-bench/bird-minidev')
-OUTPUT_PATH = Path(f'/kaggle/working/results/{MODEL}_{EXPERIMENT}/')
+OUTPUT_PATH = Path(f'/kaggle/working/results/{MODEL.name}_{EXPERIMENT}/')
 BIRD_QUESTION_FILENAME = 'dev.json'
 DATABASES_FOLDERNAME = 'dev_databases'
 DB_EXEC_TIMEOUT = 30.0                              # maximum number of seconds a query execution is allowed to take
-USE_CACHED_SCHEMA = None #Path('/kaggle/working/bird-bench/aug-minidev/aug-minidev/aug.json')  # Use pre-generated schema 
+USE_CACHED_SCHEMA = False #Path('/kaggle/working/bird-bench/aug-minidev/aug-minidev/aug.json')  # Use pre-generated schema 
 
 # set all to FALSE for actual runs
-USE_DEBUG_DATASET = True                           # Debug with only first 15 bird questions
+USE_DEBUG_DATASET = False                          # Debug with only first 5 bird questions
 USE_DEBUG_DB = False                               # True for ['formula_1', 'debit_card_specializing', 'thrombosis_prediction'] only subset

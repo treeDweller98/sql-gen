@@ -69,7 +69,6 @@ class TextToSQL(ABC):
         self.llm = llm
         self.databases = databases
         self.output_path = output_path
-        self.agent_name = f"{self.llm}_{self.__class__.__name__}"
 
     def process_bird_df(self, idx: int, row: pd.DataFrame, **kwargs) -> tuple:
         """ Takes a row of a DataFrame of BIRD Bench questions. 
@@ -98,8 +97,7 @@ class TextToSQL(ABC):
     
     def batched_generate(
         self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int, 
-        savename: str, evaluator_fn: Callable, db_exec_timeout: float, 
-        **kwargs
+        savename: str, evaluator_fn: Callable, **kwargs
     ) -> TextToSQLGenerationOutput:
         """ Generates SQL from a DataFrame of BIRD questions. Evaluates performance using evaluator_fn.
             Saves responses with savename as suffix.
@@ -111,7 +109,7 @@ class TextToSQL(ABC):
         n_in_tokens:   list[int] = []
         n_out_tokens:  list[int] = []
         
-        for i, batch in enumerate(tqdm(batched(df, batch_size), desc=f'{self.agent_name} {savename} Generating SQL')):
+        for i, batch in enumerate(tqdm(batched(df, batch_size), desc=f'{savename} Generating SQL')):
             # Generate
             prompts: list[str] = [
                 self.generate_prompt(*self.process_bird_df(idx, row, **kwargs))
@@ -135,7 +133,7 @@ class TextToSQL(ABC):
             axis=1,
         )
         if evaluator_fn:
-            labels, report = evaluator_fn(final_df, self.databases, db_exec_timeout, f'parsed_sql_{savename}')
+            labels, report = evaluator_fn(final_df, self.databases, f'parsed_sql_{savename}')
             final_df[f'label_{savename}'] = labels
             with open(self.output_path/f'results_{savename}.txt', 'w') as f:
                 f.write(report)

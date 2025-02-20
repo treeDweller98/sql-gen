@@ -24,7 +24,7 @@ def read_dataset() -> tuple[pd.DataFrame, list[str], dict[str, SQLiteDatabase]]:
     else:
         db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
     if USE_DEBUG_DATASET:
-        df = df.head(15)
+        df = df.head()
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), DB_EXEC_TIMEOUT, USE_CACHED_SCHEMA) 
         for db_id in db_names
@@ -44,7 +44,7 @@ def setup_experiment():
         max_tokens=4096,
     )
     llm = LLM(
-        MODEL,
+        MODEL.value,
         gpu_memory_utilization=GPU_MEMORY_UTILIZATION,
         tensor_parallel_size=TENSOR_PARALLEL_SIZE,
         max_model_len=MODEL_MAX_SEQ_LEN,
@@ -60,7 +60,7 @@ def agent_baseline(
     batch_size: int, name: str, **kwargs
 ) -> tuple[pd.DataFrame, str]:
     
-    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL}_{EXPERIMENT}")
+    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT}")
     
     outputs = agent.batched_generate(df, cfg, batch_size, name, **kwargs)
 
@@ -77,9 +77,15 @@ def agent_baseline(
         f.write(report)
     df.to_json(OUTPUT_PATH/f'df_{name}.json', orient='records')
     
-    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL}_{EXPERIMENT} Successfully Completed.\n\n\n")
+    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT} Successfully Completed.\n\n\n")
     return df
 
+
+def mad_experiment(
+    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], llm: LLM, savename: str = f'multiag'
+):
+    from sqlgen.discussion import MultiAgentDiscussion
+    MultiAgentDiscussion.discuss(df, databases, llm, OUTPUT_PATH, savename, BATCH_SIZE, evaluate, DB_EXEC_TIMEOUT)
 
 
 
