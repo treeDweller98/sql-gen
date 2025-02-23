@@ -3,7 +3,7 @@ import json
 import sqlite3
 from pathlib import Path
 from abc import ABC
-from collections.abc import Optional, Callable, Sequence
+from typing import Optional, Callable, Sequence
 from tqdm import tqdm
 import pandas as pd
 from vllm import LLM, SamplingParams
@@ -16,7 +16,7 @@ def batched(sequence: Sequence, n: int=1):
     for ndx in range(0, l, n):
         yield sequence[ndx:min(ndx + n, l)]
 
-        
+
 class TextToSQLGenerationOutput:
     def __init__(
         self, input_prompts: list[str], raw_responses: list[str], parsed_sql: list[str], 
@@ -97,11 +97,13 @@ class TextToSQL(ABC):
     
     def batched_generate(
         self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int, 
-        savename: str, evaluator_fn: Callable, **kwargs
-    ) -> TextToSQLGenerationOutput:
-        """ Generates SQL from a DataFrame of BIRD questions. Evaluates performance using evaluator_fn.
+        savename: str, evaluator_fn: Optional[Callable] = None, **kwargs
+    ) -> tuple[TextToSQLGenerationOutput, Optional[list[bool]]]:
+        """ Generates SQL from a DataFrame of BIRD questions. 
+            Evaluates performance using evaluator_fn.
             Saves responses with savename as suffix.
             Kwargs passed on to process_bird_df().
+            Returns TextGenerationOutput, along with labels if evaluate_fn given
         """
         input_prompts: list[str] = []
         raw_responses: list[str] = []
@@ -137,8 +139,10 @@ class TextToSQL(ABC):
             final_df[f'label_{savename}'] = labels
             with open(self.output_path/f'results_{savename}.txt', 'w') as f:
                 f.write(report)
+        else:
+            labels = None
         final_df.to_json(self.output_path / f"df_batgen_{savename}.json", orient='records')
-        return final_output
+        return final_output, labels
 
     def parse_with_regex(self, response: str) -> str:
         """ Extracts SQL from responses containing '''sql ... ''' using regex. """
