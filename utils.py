@@ -1,37 +1,29 @@
+from typing import Callable
 import pandas as pd
 from vllm import LLM, SamplingParams
 from config import *
 from core.dbhandler import SQLiteDatabase
 from core.birdeval import evaluate
 from sqlgen.base_agent import TextToSQL
+from sqlgen.discussion import MultiAgentDiscussion
 
 
 ### BIRD Dataset Reader Function ###
-def read_dataset() -> tuple[pd.DataFrame, list[str], dict[str, SQLiteDatabase]]:
+def read_dataset() -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
     """ BIRD dataset reader function.
         1. Reads dataset into DataFrame from "INPUT_PATH/BIRD_QUESTION_FILENAME".
         2. Lists database names from folders in "INPUT_PATH/DB_FOLDERNAME/".
-        3. If USE_DEBUG_DB, returns debug subset of databases
-           ['formula_1', 'debit_card_specializing', 'thrombosis_prediction'].
-        4. If USE_DEBUG_DATASET, returns first 5 DataFrame rows only.
-        5. Creates dict of SQLiteDatabases, indexed by db_name.
-        Returns df of BIRD questions, db_names, and dict of databases.
+        3. Creates dict of SQLiteDatabases, indexed by db_name.
+        Returns DataFrame of BIRD questions and dict of databases.
     """
     df = pd.read_json(INPUT_PATH / BIRD_QUESTION_FILENAME)
-    if USE_DEBUG_DB:
-        db_names: list[str] = ['formula_1', 'debit_card_specializing', 'thrombosis_prediction']
-        df = df[df['db_id'].isin(db_names)]
-    else:
-        db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
-    if USE_DEBUG_DATASET:
-        df = df.head()
+    db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), DB_EXEC_TIMEOUT, USE_CACHED_SCHEMA) 
         for db_id in db_names
     }
     print(f'{db_names=}, {len(df)=}')
     return df, databases
-
 
 
 def setup_experiment():
@@ -57,35 +49,35 @@ def setup_experiment():
 
 def agent_baseline(
     agent: TextToSQL, cfg: SamplingParams, df: pd.DataFrame, 
-    batch_size: int, name: str, **kwargs
+    batch_size: int, savename: str, evaluator_fn: Callable, **kwargs
 ) -> tuple[pd.DataFrame, str]:
-    
-    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT}")
-    
-    outputs = agent.batched_generate(df, cfg, batch_size, name, **kwargs)
+    print(f"Experiment: {savename}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}")
+    outputs, labels = agent.batched_generate(df, cfg, batch_size, savename, evaluator_fn, **kwargs)
 
-    df[f'input_prompts_{name}'] = outputs.input_prompts
-    df[f'n_in_tokens_{name}']   = outputs.n_in_tokens
-    df[f'raw_responses_{name}'] = outputs.raw_responses
-    df[f'n_out_tokens_{name}']  = outputs.n_out_tokens
-    df[f'parsed_sql_{name}']    = outputs.parsed_sql
-    
-    labels, report = evaluate(df, agent.databases, DB_EXEC_TIMEOUT, f'parsed_sql_{name}')
-    df[f'label_{name}'] = labels
-    
-    with open(OUTPUT_PATH/f'results_{name}.txt', 'w') as f:
-        f.write(report)
-    df.to_json(OUTPUT_PATH/f'df_{name}.json', orient='records')
-    
-    print(f"Experiment: {name}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT} Successfully Completed.\n\n\n")
+    df[f'input_prompts_{savename}'] = outputs.input_prompts
+    df[f'n_in_tokens_{savename}']   = outputs.n_in_tokens
+    df[f'raw_responses_{savename}'] = outputs.raw_responses
+    df[f'n_out_tokens_{savename}']  = outputs.n_out_tokens
+    df[f'parsed_sql_{savename}']    = outputs.parsed_sql    
+    df[f'label_{savename}']         = labels
+    df.to_json(OUTPUT_PATH/f'df_{savename}.json', orient='records')
+        
+    print(f"Experiment: {savename}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT} Successfully Completed.\n\n\n")
     return df
 
 
 def mad_experiment(
     df: pd.DataFrame, databases: dict[str, SQLiteDatabase], llm: LLM, savename: str = f'multiag'
 ):
-    from sqlgen.discussion import MultiAgentDiscussion
-    MultiAgentDiscussion.discuss(df, databases, llm, OUTPUT_PATH, savename, BATCH_SIZE, evaluate, DB_EXEC_TIMEOUT)
+    MultiAgentDiscussion.discuss(
+        df=df, 
+        databases=databases, 
+        llm=llm, 
+        output_path=OUTPUT_PATH, 
+        savename=savename, 
+        batch_size=BATCH_SIZE, 
+        evaluator_fn=evaluate, 
+    )
 
 
 
