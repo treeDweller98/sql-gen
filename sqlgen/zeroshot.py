@@ -9,13 +9,16 @@ class ZeroShotAgent(TextToSQL):
     def generate_prompt(self, schema: str, question: str) -> str:
         prompt = (
             "Given the following SQLite tables, your job is to write queries given a user’s request. "
-            "Please begin your response with 'Let\'s think step by step'.\n\n"
+            f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
-            f"### QUESTION\n{question}."
+            f"### QUESTION\n{question}.\n\n"
+            f"### RESPONSE\nLet's think step by step "
         )
         return prompt
     
 
+
+### DO NOT USE
 class MetaPromptZeroShotAgent(ZeroShotAgent):
     """ Zero-shot SQL Generator using detailed meta-prompt of instructions"""
     def generate_prompt(self, schema: str, question: str) -> str:
