@@ -6,6 +6,7 @@ from core.dbhandler import SQLiteDatabase
 from core.birdeval import evaluate
 from sqlgen.base_agent import TextToSQL
 from sqlgen.discussion import MultiAgentDiscussion
+from sqlgen.zeroshot import ZeroShotAgent
 
 
 ### BIRD Dataset Reader Function ###
@@ -80,18 +81,9 @@ def mad_experiment(
     )
 
 
-
-# from sqlgen.zeroshot import ZeroShotAgent, MetaPromptZeroShotAgent, OptimizerAgent
-
-# def run_baseline(df, databases, cfg, llm, output_path, batch_size):
-    
-#     agent_zs = ZeroShotAgent(llm, databases, output_path)
-#     agent_mp = MetaPromptZeroShotAgent(llm, databases, output_path)
-#     agent_op = OptimizerAgent(llm, databases, output_path)
-
-#     df = agent_baseline(agent_zs, cfg, df, batch_size, 'zs')
-#     df = agent_baseline(agent_op, cfg, df, batch_size, 'opzs', pred_col='pred_zs')
-#     df = agent_baseline(agent_mp, cfg, df, batch_size, 'mp')
-#     df = agent_baseline(agent_op, cfg, df, batch_size, 'opmp', pred_col='pred_mp')
-
-#     df.to_json(output_path / 'final_df.json', orient='records')
+def zeroshot_experiment(
+    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
+    llm: LLM, cfg: SamplingParams, savename: str = f'zs'
+):  
+    agent_zs = ZeroShotAgent(llm, databases, OUTPUT_PATH)
+    df = agent_baseline(agent_zs, cfg, df, BATCH_SIZE, savename, evaluate)
