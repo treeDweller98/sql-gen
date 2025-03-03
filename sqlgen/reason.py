@@ -19,7 +19,7 @@ class ReasonerZeroShot(TextToSQL):
 class PlannerAgent(TextToSQL):
     def generate_prompt(self, schema: str, question: str):
         prompt = (
-            "You are Query"
+            "You are .."
         )
         return prompt
     
