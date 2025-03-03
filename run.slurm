@@ -25,7 +25,7 @@ python main.py \
     --OUTPUT_PATH "results/{model}_{experiment}/" \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
-    --DB_EXEC_TIMEOUT 30 \
+    --DB_EXEC_TIMEOUT 30
     # --USE_CACHED_SCHEMA
 
 
