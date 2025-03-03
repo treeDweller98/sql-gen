@@ -32,11 +32,11 @@ def setup_experiment():
         repetition_penalty=1.1,
         max_tokens=4096,
     )
-    return df, databases, cfg, llm
+    return df, databases, cfg, llm, args
 
 
 
 if __name__ == '__main__':
-    df, databases, cfg, llm = setup_experiment()
-    zeroshot_experiment(df, databases, llm, cfg, 'zs')
+    df, databases, cfg, llm, args = setup_experiment()
+    zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, 'zs')
     # mad_experiment(df, databases, llm, 'multiag')
