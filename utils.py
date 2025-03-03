@@ -1,89 +1,135 @@
-from typing import Callable
+import argparse
+from pathlib import Path
+from enum import Enum
 import pandas as pd
-from vllm import LLM, SamplingParams
-from config import *
 from core.dbhandler import SQLiteDatabase
-from core.birdeval import evaluate
-from sqlgen.base_agent import TextToSQL
-from sqlgen.discussion import MultiAgentDiscussion
-from sqlgen.zeroshot import ZeroShotAgent
+
+
+class SupoortedModels(Enum):
+    qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
+    qwen25_coder_32b_instruct = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
 
 ### BIRD Dataset Reader Function ###
-def read_dataset() -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
+def read_dataset(
+    input_path: Path, bird_question_filename: str, db_foldername: str, 
+    use_cached_schema: bool, db_exec_timeout: float
+) -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
     """ BIRD dataset reader function.
-        1. Reads dataset into DataFrame from "INPUT_PATH/BIRD_QUESTION_FILENAME".
-        2. Lists database names from folders in "INPUT_PATH/DB_FOLDERNAME/".
+        1. Reads dataset into DataFrame from "input_path/bird_question_filename".
+        2. Lists database names from folders in "input_path/db_foldername/".
         3. Creates dict of SQLiteDatabases, indexed by db_name.
         Returns DataFrame of BIRD questions and dict of databases.
     """
-    df = pd.read_json(INPUT_PATH / BIRD_QUESTION_FILENAME)
-    db_names: list[str] = [f.name for f in (INPUT_PATH / DATABASES_FOLDERNAME).iterdir()]
+    df = pd.read_json(input_path / bird_question_filename)
+    db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir()]
     databases: dict[str, SQLiteDatabase] = {
-        db_id: SQLiteDatabase(db_id, (INPUT_PATH / DATABASES_FOLDERNAME), DB_EXEC_TIMEOUT, USE_CACHED_SCHEMA) 
+        db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
         for db_id in db_names
     }
     print(f'{db_names=}, {len(df)=}')
     return df, databases
 
 
-def setup_experiment():
-    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-    df, databases = read_dataset()
-    cfg = SamplingParams(
-        temperature=0,
-        top_p=1,
-        repetition_penalty=1.1,
-        max_tokens=4096,
+def parse_args():
+    parser = argparse.ArgumentParser(description="Configuration for Experiment.")
+    
+    # Model argument
+    model_choices = [model.name for model in SupoortedModels]
+    parser.add_argument(
+        '--MODEL', type=str, choices=model_choices, 
+        help=f"Model to be used in the experiment: {model_choices}"
     )
-    llm = LLM(
-        MODEL.value,
-        gpu_memory_utilization=GPU_MEMORY_UTILIZATION,
-        tensor_parallel_size=TENSOR_PARALLEL_SIZE,
-        max_model_len=MODEL_MAX_SEQ_LEN,
-        max_seq_len_to_capture=MODEL_MAX_SEQ_LEN,
-        kv_cache_dtype=KV_CACHE_DTYPE,
-        seed=SEED,
+    parser.add_argument(
+        '--TENSOR_PARALLEL_SIZE', type=int, 
+        help="Number of GPUs for tensor parallelism."
     )
-    return df, databases, cfg, llm
-
-
-def agent_baseline(
-    agent: TextToSQL, cfg: SamplingParams, df: pd.DataFrame, 
-    batch_size: int, savename: str, evaluator_fn: Callable, **kwargs
-) -> tuple[pd.DataFrame, str]:
-    print(f"Experiment: {savename}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}")
-    outputs, labels = agent.batched_generate(df, cfg, batch_size, savename, evaluator_fn, **kwargs)
-
-    df[f'input_prompts_{savename}'] = outputs.input_prompts
-    df[f'n_in_tokens_{savename}']   = outputs.n_in_tokens
-    df[f'raw_responses_{savename}'] = outputs.raw_responses
-    df[f'n_out_tokens_{savename}']  = outputs.n_out_tokens
-    df[f'parsed_sql_{savename}']    = outputs.parsed_sql    
-    df[f'label_{savename}']         = labels
-    df.to_json(OUTPUT_PATH/f'df_{savename}.json', orient='records')
-        
-    print(f"Experiment: {savename}_{'' if USE_CACHED_SCHEMA else 'un'}aug_{MODEL.name}_{EXPERIMENT} Successfully Completed.\n\n\n")
-    return df
-
-
-def mad_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], llm: LLM, savename: str = f'multiag'
-):
-    MultiAgentDiscussion.discuss(
-        df=df, 
-        databases=databases, 
-        llm=llm, 
-        output_path=OUTPUT_PATH, 
-        savename=savename, 
-        batch_size=BATCH_SIZE, 
-        evaluator_fn=evaluate, 
+    parser.add_argument(
+        '--MODEL_MAX_SEQ_LEN', type=int, default=4096 * 2, 
+        help="Maximum sequence length for the model (must be integer multiple of 4096)."
+    )
+    parser.add_argument(
+        '--KV_CACHE_DTYPE', type=str, default='auto', choices=['auto', 'fp8'],
+        help="KV cache data type (auto/fp8)."
+    )
+    parser.add_argument(
+        '--GPU_MEMORY_UTILIZATION', type=float, default=0.98,
+        help="GPU memory utilization (0.0 to 1.0)."
+    )
+    parser.add_argument(
+        '--SEED', type=int, default=42, 
+        help="Seed for random number generation."
+    )
+    
+    # Save once a batch is completed
+    parser.add_argument(
+        '--BATCH_SIZE', type=int, default=64, 
+        help="Number of examples sent for generation at once. Saves after each batch is finished."
     )
 
 
-def zeroshot_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    llm: LLM, cfg: SamplingParams, savename: str = f'zs'
-):  
-    agent_zs = ZeroShotAgent(llm, databases, OUTPUT_PATH)
-    df = agent_baseline(agent_zs, cfg, df, BATCH_SIZE, savename, evaluate)
+    # Input and Output Path
+    parser.add_argument(
+        '--INPUT_PATH', type=str, default='data/bird-minidev',
+        help="Input path for the experiment data."
+    )
+    parser.add_argument(
+        '--OUTPUT_PATH', type=str, default='results/{model}_{experiment}/', 
+        help="Output path for the experiment results."
+    )
+
+    # Additional parameters like BIRD_QUESTION_FILENAME, etc.
+    parser.add_argument(
+        '--BIRD_QUESTION_FILENAME', type=str, default='dev.json', 
+        help="Filename for bird question data in input_path/"
+    )
+    parser.add_argument(
+        '--DB_FOLDERNAME', type=str, default='dev_databases', 
+        help="Folder name for databases in in input_path/"
+    )
+    parser.add_argument(
+        '--DB_EXEC_TIMEOUT', type=float, default=30.0, 
+        help="Timeout for database queries in seconds."
+    )
+    parser.add_argument(
+        '--USE_CACHED_SCHEMA', type=bool, default=False, 
+        help="Flag to use cached schema."
+    )
+    parser.add_argument(
+        '--EXPERIMENT', type=str,
+        help="Experiment name."
+    )
+
+
+    args = parser.parse_args()
+
+    model = SupoortedModels[args.MODEL]     # extract model from Enum
+    input_path = Path(args.INPUT_PATH)
+    output_path = Path(args.OUTPUT_PATH.format(model=model.name, experiment=args.EXPERIMENT))
+
+    args.MODEL = model
+    args.INPUT_PATH = input_path
+    args.OUTPUT_PATH = output_path
+
+    return args
+
+
+if __name__ == '__main__':
+    # Parse arguments
+    args = parse_args()
+
+    # Print the configurations to confirm
+    print(f"Experiment: {args.EXPERIMENT}")
+    print(f"Model: {args.MODEL.value}")
+    print(f"GPU Memory Utilization: {args.GPU_MEMORY_UTILIZATION}")
+    print(f"Tensor Parallel Size: {args.TENSOR_PARALLEL_SIZE}")
+    print(f"Model Max Seq Len: {args.MODEL_MAX_SEQ_LEN}")
+    print(f"KV Cache Dtype: {args.KV_CACHE_DTYPE}")
+    print(f"Batch Size: {args.BATCH_SIZE}")
+    print(f"Seed: {args.SEED}")
+    print(f"Input Path: {args.INPUT_PATH}")
+    print(f"Output Path: {args.OUTPUT_PATH}")
+    print(f"Bird Question Filename: {args.BIRD_QUESTION_FILENAME}")
+    print(f"Databases Folder Name: {args.DB_FOLDERNAME}")
+    print(f"DB Exec Timeout: {args.DB_EXEC_TIMEOUT}")
+    print(f"Use Cached Schema: {args.USE_CACHED_SCHEMA}")
