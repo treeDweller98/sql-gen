@@ -8,10 +8,10 @@ from core.dbhandler import SQLiteDatabase
 class SupoortedModels(Enum):
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
     qwen25_coder_32b_instruct = "Qwen/Qwen2.5-Coder-32B-Instruct"
-    starcoder2_15b_instruct = "bigcode/starcoder2-15b-instruct-v0.1"
-    granite_8b_code_instruct = "ibm-granite/granite-8b-code-instruct-128k"
+    starcoder2_15b_instruct   = "bigcode/starcoder2-15b-instruct-v0.1"
+    granite_20b_code_instruct = "ibm-granite/granite-20b-code-instruct-8k"
+    granite_34b_code_instruct = "ibm-granite/granite-34b-code-instruct-8k"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
-
 
 
 ### BIRD Dataset Reader Function ###
