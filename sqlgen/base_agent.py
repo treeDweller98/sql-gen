@@ -41,6 +41,7 @@ class TextToSQLGenerationOutput:
         return df
 
     def __str__(self):
+        """ For use with single requests """
         print("Input Prompts: ", self.input_prompts)
         print("Raw Responses: ", self.raw_responses)
         print("Parsed SQL: ", self.parsed_sql)
@@ -89,7 +90,7 @@ class TextToSQL(ABC):
 
         input_prompts: list[str] = [output.prompt for output in outputs]
         raw_responses: list[str] = [output.outputs[0].text for output in outputs]
-        parsed_sql:    list[str] = [self.auto_parse_sql(response) for response in raw_responses]
+        parsed_sql:    list[str] = [self.parse_with_regex(response) for response in raw_responses]
         n_in_tokens:   list[int] = [len(output.prompt_token_ids) for output in outputs]
         n_out_tokens:  list[int] = [len(output.outputs[0].token_ids) for output in outputs]
 
@@ -151,29 +152,6 @@ class TextToSQL(ABC):
         except AttributeError as e:
             sql = ''
         return sql
-    
-    def auto_parse_sql(self, response: str) -> str:
-        """ Extracts SQL from responses containing '''sql ... ''' using regex. 
-            If regex search fails, attempts to parse using LLM.
-            Returns cleaned SQL or an empty string.
-        """
-        matched = self.parse_with_regex(response)
-        if not matched:
-            prompt = (
-                "Please extract the SQL query from the text. Enclose your response within "
-                "a ```sql <<your response here>> ``` code block. Exclude any additional "
-                "text from your response, leaving only the SQL.\n\n"
-                f"### Text:\n{response}\n\n"
-                f"### SQL:\n"
-            )
-            raw_output = self.llm.generate(prompt, SamplingParams(temperature=0), use_tqdm=False)
-            llm_parsed = raw_output[0].outputs[0].text
-            matched = self.parse_with_regex(llm_parsed)
-            if matched:
-                print("Successfully parsed with LLM.")
-            else:
-                print("Failed to parse with LLM. Returning empty string.")
-        return matched
     
     def is_sql_same(self, db_id: str, query_1: str, query_2: str) -> bool:
         """ Executes SQL queries and returns True if outputs match, with no operation errors. """
