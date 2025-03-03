@@ -25,6 +25,7 @@ def setup_experiment():
         max_seq_len_to_capture=args.MODEL_MAX_SEQ_LEN,
         kv_cache_dtype=args.KV_CACHE_DTYPE,
         seed=args.SEED,
+        dtype=args.VLLM_DTYPE,
     )
     cfg = SamplingParams(
         temperature=0,
@@ -38,5 +39,4 @@ def setup_experiment():
 
 if __name__ == '__main__':
     df, databases, cfg, llm, args = setup_experiment()
-    zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, 'zs')
-    # mad_experiment(df, databases, llm, 'multiag')
+    zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)

@@ -45,7 +45,7 @@ def parse_args():
         help=f"Model to be used in the experiment: {model_choices}"
     )
     parser.add_argument(
-        '--TENSOR_PARALLEL_SIZE', type=int, 
+        '--TENSOR_PARALLEL_SIZE', type=int, default=1,
         help="Number of GPUs for tensor parallelism."
     )
     parser.add_argument(
@@ -57,8 +57,12 @@ def parse_args():
         help="KV cache data type (auto/fp8)."
     )
     parser.add_argument(
-        '--GPU_MEMORY_UTILIZATION', type=float, default=0.98,
+        '--GPU_MEMORY_UTILIZATION', type=float, default=0.9,
         help="GPU memory utilization (0.0 to 1.0)."
+    )
+    parser.add_argument(
+        '--VLLM_DTYPE', type=str, default='auto',
+        help="Dtype for weights and activations. Set to 'half' for cards that don't support BF16"
     )
     parser.add_argument(
         '--SEED', type=int, default=42, 
@@ -104,16 +108,10 @@ def parse_args():
         help="Experiment name."
     )
 
-
     args = parser.parse_args()
-
-    model = SupoortedModels[args.MODEL]     # extract model from Enum
-    input_path = Path(args.INPUT_PATH)
-    output_path = Path(args.OUTPUT_PATH.format(model=model.name, experiment=args.EXPERIMENT))
-
-    args.MODEL = model
-    args.INPUT_PATH = input_path
-    args.OUTPUT_PATH = output_path
+    args.MODEL = SupoortedModels[args.MODEL]
+    args.INPUT_PATH = Path(args.INPUT_PATH)
+    args.OUTPUT_PATH = Path(args.OUTPUT_PATH.format(model=args.MODEL.name, experiment=args.EXPERIMENT))
 
     return args
 
@@ -129,6 +127,7 @@ if __name__ == '__main__':
     print(f"Tensor Parallel Size: {args.TENSOR_PARALLEL_SIZE}")
     print(f"Model Max Seq Len: {args.MODEL_MAX_SEQ_LEN}")
     print(f"KV Cache Dtype: {args.KV_CACHE_DTYPE}")
+    print(f"VLLM_DTYPE: {args.VLLM_DTYPE}")
     print(f"Batch Size: {args.BATCH_SIZE}")
     print(f"Seed: {args.SEED}")
     print(f"Input Path: {args.INPUT_PATH}")
