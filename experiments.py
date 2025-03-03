@@ -6,7 +6,7 @@ from core.dbhandler import SQLiteDatabase
 from sqlgen.base_agent import TextToSQL
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.zeroshot import ZeroShotAgent
-
+from typing import Callable
 
 def run_baseline(
     agent: TextToSQL, cfg: SamplingParams, df: pd.DataFrame, 
