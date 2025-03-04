@@ -2,16 +2,16 @@
 
 #SBATCH --array=0-5
 #SBATCH --partition=long
-#SBATCH --time=3:00:00
-#SBATCH --output=log/slurm/log-%A-%a.log 
+#SBATCH --time=1:00:00
+#SBATCH --output=log/zs_minidev/log-%A-%a.log 
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-conda activate /network/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/sqlgen-env
+source activate /home/mila/i/islamria/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/sqlgen-env
 
-export PATH=/network/scratch/i/islamria/ria-vllm-abs-rl/rl-llm/sql-gen/sqlgen-env/bin:$PATH
-export PYTHONPATH=/network/scratch/i/islamria/ria-vllm-abs-rl/rl-llm/sql-gen:$PYTHONPATH
+export PATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen/sqlgen-env/bin:$PATH
+export PYTHONPATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen:$PYTHONPATH
 
 models_list=(
     "qwen25_coder_14b_instruct"
