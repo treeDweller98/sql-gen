@@ -37,5 +37,6 @@ def setup_experiment():
 
 if __name__ == '__main__':
     df, databases, cfg, llm, args = setup_experiment()
-    print(f"Starting Experiment {args.EXPERIMENT} with {args.MODEL.value}")
+    print(f"Starting Experiment: {args.EXPERIMENT} with {args.MODEL.value}")
     zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+    print(f"Experiment Complete: {args.EXPERIMENT} with {args.MODEL.value}")
