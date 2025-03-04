@@ -6,16 +6,11 @@ from experiments import zeroshot_experiment
 def setup_experiment():
     # Parse Arguments
     args = parse_args()
-
-    # Create Output Directory
-    args.OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-
     # Read Dataset
     df, databases = read_dataset(
         args.INPUT_PATH, args.BIRD_QUESTION_FILENAME, args.DB_FOLDERNAME, 
         args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT
     )
-
     # LLM and Default Generation Config
     llm = LLM(
         args.MODEL.value,
@@ -26,6 +21,7 @@ def setup_experiment():
         kv_cache_dtype=args.KV_CACHE_DTYPE,
         seed=args.SEED,
         dtype=args.VLLM_DTYPE,
+        trust_remote_code=True,
     )
     cfg = SamplingParams(
         temperature=0,
@@ -33,10 +29,13 @@ def setup_experiment():
         repetition_penalty=1.1,
         max_tokens=4096,
     )
+    # Create Output Directory
+    args.OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
     return df, databases, cfg, llm, args
 
 
 
 if __name__ == '__main__':
     df, databases, cfg, llm, args = setup_experiment()
+    print(f"Starting Experiment {args.EXPERIMENT} with {args.MODEL.value}")
     zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
