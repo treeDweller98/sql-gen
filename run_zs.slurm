@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --array=0-5
+#SBATCH --array=0-9
 #SBATCH --partition=long
 #SBATCH --time=1:00:00
 #SBATCH --output=log/zs_minidev/log-%A-%a.log 
@@ -14,13 +14,13 @@ export PATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen/sqlgen-
 export PYTHONPATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen:$PYTHONPATH
 
 models_list=(
-    "qwen25_14b_instruct
+    "qwen25_14b_instruct"
     "qwen25_coder_14b_instruct"
     "deepseek_r1_qwen_14b"
     "starcoder2_15b_instruct"
     "deepseek_coder_v2_lite_instruct"
     "granite_20b_code_instruct"
-    "qwen25_32b_instruct
+    "qwen25_32b_instruct"
     "qwen25_coder_32b_instruct"
     "deepseek_r1_qwen_32b"
     "granite_34b_code_instruct"
