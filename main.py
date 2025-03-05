@@ -1,6 +1,11 @@
 from vllm import LLM, SamplingParams
 from utils import read_dataset, parse_args
-from experiments import zeroshot_experiment
+from experiments import (
+    zeroshot_experiment,
+    reasoner_zeroshot_experiment,
+    discuss_experiment,
+    debate_experiment,
+)
 
 
 def setup_experiment():
@@ -38,6 +43,20 @@ def setup_experiment():
 
 if __name__ == '__main__':
     df, databases, cfg, llm, args = setup_experiment()
-    print(f"Starting Experiment: {args.EXPERIMENT} with {args.MODEL.value}")
-    zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
-    print(f"Experiment Complete: {args.EXPERIMENT} with {args.MODEL.value}")
+    experiment = args.EXPERIMENT
+
+    print(f"Starting Experiment: {experiment} with {args.MODEL.value}")
+
+    match experiment:
+        case 'zs':
+            zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+        case 'rzs':
+            reasoner_zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+        case 'mad':
+            discuss_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+        case 'madb':
+            debate_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+        case _:
+            print("INVALID EXPERIMENT SELECTED. ABORTING.")
+    
+    print(f"End of Experiment: {experiment} with {args.MODEL.value}")

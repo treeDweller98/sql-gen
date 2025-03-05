@@ -107,9 +107,11 @@ def parse_args():
         '--USE_CACHED_SCHEMA', type=bool, default=False, 
         help="Flag to use cached schema."
     )
+
+    # Experiment to run
     parser.add_argument(
         '--EXPERIMENT', type=str,
-        help="Experiment name."
+        help="Experiment: zs, rzs, mad, mdb."
     )
 
     args = parser.parse_args()
