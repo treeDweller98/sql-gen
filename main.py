@@ -22,6 +22,7 @@ def setup_experiment():
         seed=args.SEED,
         dtype=args.VLLM_DTYPE,
         trust_remote_code=True,
+        enforce_eager=True,
     )
     cfg = SamplingParams(
         temperature=0,
