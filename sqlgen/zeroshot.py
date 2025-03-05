@@ -8,11 +8,11 @@ class ZeroShotAgent(TextToSQL):
     """ Zero-shot SQL Generator based on OpenAI Cookbook's "Natural Language to SQL" example and zero-shot COT. """            
     def generate_prompt(self, schema: str, question: str) -> str:
         prompt = (
-            "Given the following SQLite tables, your job is to write queries given a user’s request. "
+            "Given the following SQLite tables, your job is to write queries given a user’s request.\n\n"
             f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE\nLet's think step by step "
+            f"### RESPONSE\nLet's think step by step\n\n"
         )
         return prompt
     
