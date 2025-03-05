@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --array=0-2
+#SBATCH --array=0-3
 #SBATCH --partition=long
-#SBATCH --time=1:00:00
-#SBATCH --output=log/zs_minidev/log-%A-%a.log 
+#SBATCH --time=8:00:00
+#SBATCH --output=log/mad-minidev/log-%A-%a.log 
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
@@ -16,19 +16,19 @@ export PYTHONPATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen:$
 models_list=(
     "qwen25_14b_instruct"
     "qwen25_32b_instruct"
-    "granite_34b_code_instruct"
+    "qwen25_coder_14b_instruct"
+    "qwen25_coder_32b_instruct"
+    # "granite_34b_code_instruct"
     # "deepseek_coder_v2_lite_instruct"
-    # "qwen25_coder_14b_instruct"
     # "deepseek_r1_qwen_14b"
     # "starcoder2_15b_instruct"
     # "granite_20b_code_instruct"
-    # "qwen25_coder_32b_instruct"
     # "deepseek_r1_qwen_32b"
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
 
 python main.py \
-    --EXPERIMENT "zs" \
+    --EXPERIMENT "madb" \
     --MODEL $model \
     --GPU_MEMORY_UTILIZATION 0.97 \
     --TENSOR_PARALLEL_SIZE 4 \
