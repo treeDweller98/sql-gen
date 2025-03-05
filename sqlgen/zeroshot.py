@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlgen.base_agent import TextToSQL
+from core.base_agent import TextToSQL
 
 # TODO: long prompts performs poorly with small models
 
