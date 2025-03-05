@@ -2,14 +2,14 @@ from typing import Literal, Callable
 from pathlib import Path
 import pandas as pd
 from vllm import LLM, SamplingParams
-from sqlgen.base_agent import TextToSQL, TextToSQLGenerationOutput
+from core.base_agent import TextToSQL, TextToSQLGenerationOutput
 from core.dbhandler import SQLiteDatabase
 
 
 class ZeroShotStarter(TextToSQL):
     personas = {
-        'simple': "who offers short, and simple solutions to user questions",
-        'technical': "who provides highly technical answers to user questions",
+        'simple': "who offers concise, and simple solutions to user questions",
+        'technical': "who provides highly technical and detailed answers to user questions",
         'thinker': "who does not hesistate to dig deep into a problem and explore several approaches before settling on a solution"
     }
 
@@ -19,14 +19,12 @@ class ZeroShotStarter(TextToSQL):
 
     def generate_prompt(self, schema: str, question: str, persona: str) -> str:
         prompt = (
-            f"You are a helpful SQL coding assistant{' ' + persona if persona else ''}. "
-            "Please generate a SQLite query to answer the user question, based on the schema below. "
-            "In your response, first briefly explain your reasoning. Your final answer should be enclosed "
-            "in a markdown code block.\n\n"
+            f"You are a helpful SQL coding assistant{' ' + persona if persona else ''}.\n\n"
+            "Given the following SQLite tables, your job is to write queries given a user’s request.\n\n"
             f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE\nLet's think step by step "
+            f"### RESPONSE\nLet's think step by step\n\n"
         )
         return prompt
 
@@ -43,15 +41,14 @@ class DiscussionAgent(TextToSQL):
             for agent, response in agent_responses.items()
         )
         prompt = (
-            "You are a helpful SQL coding agent. You understand that collaborative discussion is the best way to solve problems. "
-            "Using the other agent's response as additional information, your job is to generate a SQLite query to answer the "
-            "user question based on the schema. In your response, please explain your reasoning clearly so that others may "
-            "give you constructive feedback. Your final answer should be enclosed in a markdown code block.\n\n"
+            "You are a helpful coding agent. You are collaborating with several other coding agents to answer a given user question.\n\n"
+            "Given the following SQLite tables, your job is to write queries given a user’s request. Use the other agents' responses "
+            "as additional information. Feel free to offer helpful suggestions and corrections to their answers as you see fit.\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### AGENT RESPONSES\n{other_responses}"
             f"### QUESTION\n{question}\n\n"
-            f"### YOUR RESPONSE\nLet's think step by step "
+            f"### YOUR RESPONSE\nLet's think step by step\n\n"
         )
         return prompt
     
@@ -68,22 +65,24 @@ class DiscussionJudge(TextToSQL):
             for agent, response in agent_responses.items()
         )
         prompt = (
-            f"You are a SQL expert overseeing {n_agents} coding agents collaborating to answer the user question based on the given schema. "
-            f"Using the other agents' responses as additional information, generate the production-ready SQLite query. "
-            f"Your final answer should be enclosed in a markdown code block.\n\n"
+            f"You are a SQL expert overseeing {n_agents} coding agents collaborating to answer a user question.\n\n"
+            f"Given the following SQLite tables, their job is to write queries given a user’s request. "
+            f"As the expert, your job is to judge the merit of their work and aggregate their responses "
+            f"to generate a production-ready SQLite query.\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### AGENT RESPONSES\n{other_responses}"
             f"### QUESTION\n{question}\n\n"
-            f"### VERDICT\nLet's think step by step "
+            f"### YOUR VERDICT\nLet's think step by step\n\n"
         )
         return prompt
 
 
 class MultiAgentDiscussion:
     def discuss(
-        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], llm: LLM,
-        output_path: Path, savename: str, batch_size: int, evaluator_fn: Callable
+        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
+        llm: LLM, cfg: SamplingParams,
+        output_path: Path, batch_size: int, savename: str, evaluator_fn: Callable
     ) -> pd.DataFrame:
             
         # TODO: Add personas to DiscussionAgent
@@ -94,10 +93,8 @@ class MultiAgentDiscussion:
         judge   = DiscussionJudge(llm, databases, output_path)
         
         cfg = SamplingParams(
-            temperature=0.7,
-            top_p=0.8,
-            repetition_penalty=1.2,
-            max_tokens=2048,
+            temperature=0,
+            max_tokens=4096,
         )
         
         def gather_agent_responses(
