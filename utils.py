@@ -16,6 +16,7 @@ class SupoortedModels(Enum):
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
     deepseek_r1_qwen_14b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
     deepseek_r1_qwen_32b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+    qwq_32b = "Qwen/QwQ-32B"
 
 
 ### BIRD Dataset Reader Function ###

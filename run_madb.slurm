@@ -24,6 +24,7 @@ models_list=(
     # "starcoder2_15b_instruct"
     # "granite_20b_code_instruct"
     # "deepseek_r1_qwen_32b"
+    # "qwq_32b"
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
 
