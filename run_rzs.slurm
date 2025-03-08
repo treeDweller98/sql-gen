@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --array=0-1
+#SBATCH --array=0-2
 #SBATCH --partition=long
 #SBATCH --time=3:00:00
 #SBATCH --output=log/rzs_minidev/log-%A-%a.log 
