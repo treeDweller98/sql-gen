@@ -51,6 +51,13 @@ if __name__ == '__main__':
         case 'zs':
             zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'rzs':
+            cfg = cfg = SamplingParams(
+                temperature=0.6,
+                top_p=0.95,
+                top_k=30,
+                repetition_penalty=1.1,
+                max_tokens=4096*4,
+            )
             reasoner_zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'mad':
             discuss_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
