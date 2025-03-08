@@ -12,7 +12,7 @@ class ReasonerZeroShot(TextToSQL):
             f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE\n"
+            f"### RESPONSE\n<think>\n"
         )
         return prompt
     
