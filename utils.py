@@ -6,6 +6,7 @@ from core.dbhandler import SQLiteDatabase
 
 
 class SupoortedModels(Enum):
+    qwen25_7b_instruct = "Qwen/Qwen2.5-7B-Instruct"
     qwen25_14b_instruct = "Qwen/Qwen2.5-14B-Instruct"
     qwen25_32b_instruct = "Qwen/Qwen2.5-32B-Instruct"
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"

@@ -8,3 +8,6 @@ core/__pycache__
 /results
 api_keys.py
 sql-gen.ipynb
+
+minidev/
+**__pycache__**

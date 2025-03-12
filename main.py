@@ -5,6 +5,7 @@ from experiments import (
     reasoner_zeroshot_experiment,
     discuss_experiment,
     debate_experiment,
+    reasoner_picker_experiment
 )
 
 
@@ -63,6 +64,8 @@ if __name__ == '__main__':
             discuss_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'madb':
             debate_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
+        case 'pick':
+            reasoner_picker_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
     

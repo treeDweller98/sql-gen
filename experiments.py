@@ -7,7 +7,7 @@ from sqlgen.zeroshot import ZeroShotAgent
 from sqlgen.reason import ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.debate import MultiAgentDebate
-
+from sqlgen.picker import ReasonerPicker
 
 def zeroshot_experiment(
     df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
@@ -56,6 +56,22 @@ def debate_experiment(
     output_path: Path, batch_size: int, savename: str = 'madb'
 ):
     MultiAgentDebate.debate(
+        df=df, 
+        databases=databases, 
+        llm=llm,
+        cfg=cfg,
+        output_path=output_path, 
+        batch_size=batch_size,
+        savename=savename, 
+        evaluator_fn=evaluate, 
+    )
+
+def reasoner_picker_experiment(
+    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
+    llm: LLM, cfg: SamplingParams,
+    output_path: Path, batch_size: int, savename: str = 'pick'
+):
+    ReasonerPicker.run(
         df=df, 
         databases=databases, 
         llm=llm,
