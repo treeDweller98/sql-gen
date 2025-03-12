@@ -29,39 +29,51 @@ def setup_experiment():
         enforce_eager=True,
         enable_prefix_caching=True,
     )
-    cfg = SamplingParams(
-        temperature=0,
-        top_p=1,
-        repetition_penalty=1.1,
-        max_tokens=4096*2,
-    )
     # Create Output Directory
     args.OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-    return df, databases, cfg, llm, args
+    return df, databases, llm, args
 
 
 
 if __name__ == '__main__':
-    df, databases, cfg, llm, args = setup_experiment()
+    df, databases, llm, args = setup_experiment()
     experiment = args.EXPERIMENT
 
     print(f"Starting Experiment: {experiment} with {args.MODEL.value}")
 
     match experiment:
         case 'zs':
+            cfg = SamplingParams(
+                temperature=0,
+                top_p=1,
+                repetition_penalty=1.2,
+                max_tokens=4096,
+            )
             zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'rzs':
             cfg = cfg = SamplingParams(
                 temperature=0.6,
                 top_p=0.95,
                 top_k=30,
-                repetition_penalty=1.1,
+                repetition_penalty=1.2,
                 max_tokens=4096*4,
             )
             reasoner_zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'mad':
+            cfg = SamplingParams(
+                temperature=0,
+                top_p=1,
+                repetition_penalty=1.2,
+                max_tokens=4096*2,
+            )
             discuss_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'madb':
+            cfg = SamplingParams(
+                temperature=0,
+                top_p=1,
+                repetition_penalty=1.2,
+                max_tokens=4096*2,
+            )
             debate_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
