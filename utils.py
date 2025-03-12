@@ -38,7 +38,7 @@ def read_dataset(
         db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
         for db_id in db_names
     }
-    print(f'{db_names=}, {len(df)=}')
+    print(f'\n\n{db_names=}, {len(df)=}\n\n')
     return df, databases
 
 
@@ -138,7 +138,7 @@ def parse_args():
     print(f"Databases Folder Name: {args.DB_FOLDERNAME}")
     print(f"DB Exec Timeout: {args.DB_EXEC_TIMEOUT}")
     print(f"Use Cached Schema: {args.USE_CACHED_SCHEMA}")
-
+    print("\n\n")
     return args
 
 
