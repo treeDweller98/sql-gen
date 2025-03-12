@@ -9,7 +9,6 @@ class ReasonerZeroShot(TextToSQL):
     def generate_prompt(self, schema: str, question: str) -> str:
         prompt = (
             "Given the following SQLite tables, your job is to write a query to answer the user question. "
-            f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
             f"### RESPONSE\n<think>\n"

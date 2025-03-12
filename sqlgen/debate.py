@@ -11,7 +11,6 @@ class ZeroShotStarter(TextToSQL):
     def generate_prompt(self, schema: str, question: str) -> str:
         prompt = (
             "Given the following SQLite tables, your job is to write queries given a user’s request.\n\n"
-            f"### QUESTION\n{question}.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
             f"### RESPONSE\nLet's think step by step\n\n"
