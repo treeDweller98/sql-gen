@@ -14,6 +14,8 @@ class SupoortedModels(Enum):
     granite_20b_code_instruct = "ibm-granite/granite-20b-code-instruct-8k"
     granite_34b_code_instruct = "ibm-granite/granite-34b-code-instruct-8k"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
+    deepseek_r1_qwen_1_5b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+    deepseek_r1_qwen_7b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
     deepseek_r1_qwen_14b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
     deepseek_r1_qwen_32b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
     qwq_32b = "Qwen/QwQ-32B"
@@ -112,20 +114,13 @@ def parse_args():
     # Experiment to run
     parser.add_argument(
         '--EXPERIMENT', type=str,
-        help="Experiment: zs, rzs, mad, mdb."
+        help="Experiment: zs, rzs, mad, madb."
     )
 
     args = parser.parse_args()
     args.MODEL = SupoortedModels[args.MODEL]
     args.INPUT_PATH = Path(args.INPUT_PATH)
     args.OUTPUT_PATH = Path(args.OUTPUT_PATH.format(model=args.MODEL.name, experiment=args.EXPERIMENT))
-
-    return args
-
-
-if __name__ == '__main__':
-    # Parse arguments
-    args = parse_args()
 
     # Print the configurations to confirm
     print(f"Experiment: {args.EXPERIMENT}")
@@ -143,3 +138,9 @@ if __name__ == '__main__':
     print(f"Databases Folder Name: {args.DB_FOLDERNAME}")
     print(f"DB Exec Timeout: {args.DB_EXEC_TIMEOUT}")
     print(f"Use Cached Schema: {args.USE_CACHED_SCHEMA}")
+
+    return args
+
+
+if __name__ == '__main__':
+    args = parse_args()
