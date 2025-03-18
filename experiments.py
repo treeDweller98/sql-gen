@@ -3,8 +3,7 @@ import pandas as pd
 from vllm import LLM, SamplingParams
 from core.birdeval import evaluate
 from core.dbhandler import SQLiteDatabase
-from sqlgen.zeroshot import ZeroShotAgent
-from sqlgen.reason import ReasonerZeroShot
+from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.debate import MultiAgentDebate
 

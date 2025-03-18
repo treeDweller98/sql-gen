@@ -20,10 +20,10 @@ class ZeroShotStarter(TextToSQL):
     def generate_prompt(self, schema: str, question: str, persona: str) -> str:
         prompt = (
             f"You are a helpful SQL coding assistant{' ' + persona if persona else ''}.\n\n"
-            "Given the following SQLite tables, your job is to write queries given a user’s request.\n\n"
+            "Given the following SQLite tables, your job is to write a query to answer the given question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE\nLet's think step by step\n\n"
+            f"### RESPONSE\nLet's think step by step"
         )
         return prompt
 
@@ -41,12 +41,12 @@ class DiscussionAgent(TextToSQL):
         )
         prompt = (
             "You are a helpful coding agent. You are collaborating with several other coding agents to answer a given user question.\n\n"
-            "Given the following SQLite tables, your job is to write queries given a user’s request. Use the other agents' responses "
-            "as additional information. Feel free to offer helpful suggestions and corrections to their answers as you see fit.\n\n"
+            "Given the following SQLite tables, your job is to write a query to answer the given question. Please use the other agents' "
+            "responses as additional information. Feel free to offer helpful suggestions and corrections to their answers as you see fit.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### AGENT RESPONSES\n{other_responses}"
-            f"### YOUR RESPONSE\nLet's think step by step\n\n"
+            f"### YOUR RESPONSE\nLet's think step by step"
         )
         return prompt
     
@@ -65,12 +65,12 @@ class DiscussionJudge(TextToSQL):
         prompt = (
             f"You are a SQL expert overseeing {n_agents} coding agents collaborating to answer a user question.\n\n"
             f"Given the following SQLite tables, their job is to write queries given a user’s request. "
-            f"As the expert, your job is to judge the merit of their work and aggregate their responses "
+            f"As the expert, your job is to judge the merit of their work and combine their responses "
             f"to generate a production-ready SQLite query.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### AGENT RESPONSES\n{other_responses}"
-            f"### YOUR VERDICT\nLet's think step by step\n\n"
+            f"### YOUR VERDICT\nLet's think step by step"
         )
         return prompt
 
