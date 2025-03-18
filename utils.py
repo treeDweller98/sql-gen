@@ -10,7 +10,6 @@ class SupoortedModels(Enum):
     qwen25_32b_instruct = "Qwen/Qwen2.5-32B-Instruct"
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
     qwen25_coder_32b_instruct = "Qwen/Qwen2.5-Coder-32B-Instruct"
-    starcoder2_15b_instruct   = "bigcode/starcoder2-15b-instruct-v0.1"
     granite_20b_code_instruct = "ibm-granite/granite-20b-code-instruct-8k"
     granite_34b_code_instruct = "ibm-granite/granite-34b-code-instruct-8k"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
@@ -33,12 +32,13 @@ def read_dataset(
         Returns DataFrame of BIRD questions and dict of databases.
     """
     df = pd.read_json(input_path / bird_question_filename)
+    df.rename(columns={'SQL': 'gold_sql'}, inplace=True)
     db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir()]
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
         for db_id in db_names
     }
-    print(f'\n\n{db_names=}, {len(df)=}\n\n')
+    print(f'\n\n{db_names=}\n{len(df)=}\n\n')
     return df, databases
 
 

@@ -48,7 +48,7 @@ def calculate_rves():
     raise NotImplementedError
 
     
-def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = 'SQL') -> tuple[list[bool], str]:
+def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = 'gold_sql') -> tuple[list[bool], str]:
     print(f'\n--- Evaluating Performance | TrueCol: {true_col} | PredCol: {pred_col} ---')
     labels = get_correctness_labels(df, databases, pred_col, true_col)
     ex_report = calculate_accuracy(df, pred_col, true_col, labels)
