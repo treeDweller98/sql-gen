@@ -78,15 +78,16 @@ class TextToSQL(ABC):
         """
         db = self.databases[ row['db_id'] ]
         schema = str(db)
-        question = f"{row['question']}  Hint: {row['evidence']}"
+        question = f"{row['question']}  Evidence: {row['evidence']}"
         return schema, question
 
     def generate_prompt(self, schema: str, question: str, **kwargs) -> str:
         """ Takes a question and a schema to generate the agent's SQL generation prompt """
         raise NotImplementedError
     
-    def generate_text(self, prompts: list[str], cfg: SamplingParams, use_tqdm: bool = False) -> TextToSQLGenerationOutput:        
-        outputs = self.llm.generate(prompts, sampling_params=cfg, use_tqdm=use_tqdm)
+    def generate_text(self, prompts: list[str], cfg: SamplingParams, use_tqdm: bool = False) -> TextToSQLGenerationOutput:
+        messages = [[{'role':'user', 'content': prompt}] for prompt in prompts]
+        outputs = self.llm.chat(messages, sampling_params=cfg, use_tqdm=use_tqdm)
 
         input_prompts: list[str] = [output.prompt for output in outputs]
         raw_responses: list[str] = [output.outputs[0].text for output in outputs]
@@ -152,17 +153,6 @@ class TextToSQL(ABC):
         except AttributeError as e:
             sql = ''
         return sql
-    
-    def is_sql_same(self, db_id: str, query_1: str, query_2: str) -> bool:
-        """ Executes SQL queries and returns True if outputs match, with no operation errors. """
-        try:
-            res_1 = self.databases[db_id].run_query(query_1)
-            res_2 = self.databases[db_id].run_query(query_2)
-        except sqlite3.OperationalError as e:
-            print(f"{e.__class__.__name__} {e}")
-            return False
-        else:
-            return set(res_1) == set(res_2)
         
     def dump_to_json(self, filename: str, obj: object) -> None:
         """ Dumps a list of objects to self.output_path/filename.json; use for keeping backups. """
