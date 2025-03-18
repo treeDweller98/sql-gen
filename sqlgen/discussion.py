@@ -89,11 +89,6 @@ class MultiAgentDiscussion:
         agent_3 = DiscussionAgent(llm, databases, output_path)
         judge   = DiscussionJudge(llm, databases, output_path)
         
-        cfg = SamplingParams(
-            temperature=0,
-            max_tokens=4096,
-        )
-        
         def gather_agent_responses(
                 agent_num1: int, responses_1: TextToSQLGenerationOutput, 
                 agent_num2: int, responses_2: TextToSQLGenerationOutput,
