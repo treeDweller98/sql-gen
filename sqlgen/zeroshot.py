@@ -11,7 +11,7 @@ class ZeroShotAgent(TextToSQL):
             "Given the following SQLite tables, your job is to write a query to answer the given question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE\nLet's think step by step"
+            f"### YOUR RESPONSE\nLet's think step by step"
         )
         return prompt
     
@@ -23,6 +23,6 @@ class ReasonerZeroShot(TextToSQL):
             "Given the following SQLite tables, your job is to write a query to answer the given question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}.\n\n"
-            f"### RESPONSE"
+            f"### YOUR RESPONSE"
         )
         return prompt
