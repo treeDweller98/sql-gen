@@ -8,6 +8,8 @@ from func_timeout import func_timeout, FunctionTimedOut
 # TODO: Add M-Schema
 
 class SQLiteDatabase:
+    ERROR_TIMEOUT_RESULT = [("Error: timedout", )]
+    
     """ Handler class for sqlite3 databases. Provides SQL execution capabilities and access to schema"""
     def __init__(self, db_id: str, input_path: Path, exec_timeout: float = 30.0, use_cached_schema: Optional[Path] = None) -> None:
         """ Attributes
@@ -28,6 +30,8 @@ class SQLiteDatabase:
                 descriptions: dict[str, str]
                     Table descriptions, indexed by table_name, read from table_name.csv 
                     which exist in input_path/db_id/database_description/
+                table_columns: dict[str, set[str]]
+                    Set of column names of each table, indexed by table name
 
                 use_cached_schemas: Path | None
                     use pre-generated schema stored in path/to/aug.json provided
@@ -40,6 +44,7 @@ class SQLiteDatabase:
 
         self.raw_schema: dict[str, str] = self.__fetch_raw_schema()
         self.descriptions: dict[str, str] = self.__fetch_db_descriptions()
+        self.table_columns: dict[str, set[str]] = self.__fetch_table_columns()
 
         if use_cached_schema:
             with open(use_cached_schema, 'r') as f:
@@ -65,7 +70,7 @@ class SQLiteDatabase:
                 
             rows = func_timeout(timeout=(timeout or self.exec_timeout), func=execute_sql)
         except FunctionTimedOut as timeout_error:
-            rows = [("Error: timedout", )]
+            rows = self.ERROR_TIMEOUT_RESULT
         return rows
     
     def __fetch_raw_schema(self) -> dict[str, str]:
@@ -77,6 +82,15 @@ class SQLiteDatabase:
                 schema, = self.run_query(f"SELECT sql FROM sqlite_master WHERE name='{table}';")[0]
                 schemas[table] = schema
         return schemas
+    
+    def __fetch_table_columns(self) -> dict[str, set[str]]:
+        """ Returns a list of column names of each table indexed by table names """
+        table_names = list(self.raw_schema.keys())
+        table_column_names = {}
+        for table in table_names:
+            columns = [ col[1] for col in self.run_query(f'PRAGMA table_info("{table}");') ]
+            table_column_names[table] = set(columns)
+        return table_column_names
     
     def __fetch_db_descriptions(self) -> dict[str, str]:
         """ Returns a dict of database_descriptions from each table_name.csv as strings  """
@@ -105,3 +119,19 @@ class SQLiteDatabase:
             descriptions[table] = case_insensitive_file_reader(filepath)
 
         return descriptions
+
+if __name__ == '__main__':
+    input_path  = Path(f'data/bird-minidev')
+    bird_question_filename = 'dev.json'
+    db_foldername = 'dev_databases'
+    db_exec_timeout = 30.0
+    use_cached_schema = False
+    
+    db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir()]
+    
+    databases: dict[str, SQLiteDatabase] = {
+        db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
+        for db_id in db_names
+    }
+
+    
