@@ -46,33 +46,33 @@ if __name__ == '__main__':
             cfg = SamplingParams(
                 temperature=0,
                 top_p=1,
-                repetition_penalty=1.2,
-                max_tokens=4096,
+                repetition_penalty=1.05,
+                max_tokens=1024,
             )
             zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'rzs':
-            cfg = cfg = SamplingParams(
+            cfg = SamplingParams(
                 temperature=0.6,
                 top_p=0.95,
                 top_k=30,
-                repetition_penalty=1.2,
-                max_tokens=4096*4,
+                repetition_penalty=1.0,
+                max_tokens=4096*2,
             )
             reasoner_zeroshot_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'mad':
             cfg = SamplingParams(
                 temperature=0,
                 top_p=1,
-                repetition_penalty=1.2,
-                max_tokens=4096*2,
+                repetition_penalty=1.05,
+                max_tokens=1024*2,
             )
             discuss_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case 'madb':
             cfg = SamplingParams(
                 temperature=0,
                 top_p=1,
-                repetition_penalty=1.2,
-                max_tokens=4096*2,
+                repetition_penalty=1.05,
+                max_tokens=1024*2,
             )
             debate_experiment(df, databases, llm, cfg, args.OUTPUT_PATH, args.BATCH_SIZE, args.EXPERIMENT)
         case _:
