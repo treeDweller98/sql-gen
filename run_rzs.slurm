@@ -3,7 +3,8 @@
 #SBATCH --array=0-4
 #SBATCH --partition=long
 #SBATCH --time=4:00:00
-#SBATCH --output=log/rzs_minidev-2/log-%A-%a.log 
+#SBATCH -o log/rzs_minidev/log-%A-%a.out
+#SBATCH -e log/rzs_minidev/log-%A-%a.err
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
@@ -34,7 +35,7 @@ python main.py \
     --SEED 42 \
     --BATCH_SIZE 128 \
     --INPUT_PATH "data/bird-minidev" \
-    --OUTPUT_PATH "results_new/rzs/{model}_{experiment}/" \
+    --OUTPUT_PATH "results/rzs/{model}_{experiment}/" \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
     --DB_EXEC_TIMEOUT 30
