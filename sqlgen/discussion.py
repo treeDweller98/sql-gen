@@ -66,7 +66,7 @@ class DiscussionJudge(TextToSQL):
             f"You are a SQL expert overseeing {n_agents} coding agents collaborating to answer a user question.\n\n"
             f"Given the following SQLite tables, their job is to write queries given a user’s request. "
             f"As the expert, your job is to judge the merit of their work and combine their responses "
-            f"to generate a production-ready SQLite query.\n\n"
+            f"to generate a final production-ready SQLite query.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### AGENT RESPONSES\n{other_responses}"
