@@ -15,7 +15,7 @@ def setup_experiment():
     # Read Dataset
     df, databases = read_dataset(
         args.INPUT_PATH, args.BIRD_QUESTION_FILENAME, args.DB_FOLDERNAME, 
-        args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT
+        args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT, args.IS_DEBUG,
     )
     # LLM and Default Generation Config
     llm = LLM(
