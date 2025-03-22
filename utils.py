@@ -6,24 +6,33 @@ from core.dbhandler import SQLiteDatabase
 
 
 class SupoortedModels(Enum):
+    qwen25_7b_instruct = "Qwen/Qwen2.5-7B-Instruct"
     qwen25_14b_instruct = "Qwen/Qwen2.5-14B-Instruct"
     qwen25_32b_instruct = "Qwen/Qwen2.5-32B-Instruct"
+
+    qwen25_coder_7b_instruct = "Qwen/Qwen2.5-Coder-7B-Instruct"
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
     qwen25_coder_32b_instruct = "Qwen/Qwen2.5-Coder-32B-Instruct"
+
+    granite_32_8b_instruct = "ibm-granite/granite-3.2-8b-instruct"
+    granite_8b_code_instruct = "ibm-granite/granite-8b-code-instruct-4k"
     granite_20b_code_instruct = "ibm-granite/granite-20b-code-instruct-8k"
     granite_34b_code_instruct = "ibm-granite/granite-34b-code-instruct-8k"
+
+    deepseek_v2_lite_chat = "deepseek-ai/DeepSeek-V2-Lite-Chat"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
-    deepseek_r1_qwen_1_5b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+
     deepseek_r1_qwen_7b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
     deepseek_r1_qwen_14b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
     deepseek_r1_qwen_32b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+    
     qwq_32b = "Qwen/QwQ-32B"
 
 
 ### BIRD Dataset Reader Function ###
 def read_dataset(
     input_path: Path, bird_question_filename: str, db_foldername: str, 
-    use_cached_schema: bool, db_exec_timeout: float
+    use_cached_schema: bool, db_exec_timeout: float, is_debug: bool = False,
 ) -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
     """ BIRD dataset reader function.
         1. Reads dataset into DataFrame from "input_path/bird_question_filename".
@@ -38,6 +47,8 @@ def read_dataset(
         db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
         for db_id in db_names
     }
+    if is_debug:
+        df = df.head().reset_index()
     print(f'\n\n{db_names=}\n{len(df)=}\n\n')
     return df, databases
 
@@ -116,6 +127,10 @@ def parse_args():
         '--EXPERIMENT', type=str,
         help="Experiment: zs, rzs, mad, madb."
     )
+    parser.add_argument(
+        '--IS_DEBUG', type=bool, default=False,
+        help="If debug, runs with first 5 rows of df"
+    )
 
     args = parser.parse_args()
     args.MODEL = SupoortedModels[args.MODEL]
@@ -124,6 +139,7 @@ def parse_args():
 
     # Print the configurations to confirm
     print(f"Experiment: {args.EXPERIMENT}")
+    print(f"Debug mode: {args.IS_DEBUG}")
     print(f"Model: {args.MODEL.value}")
     print(f"GPU Memory Utilization: {args.GPU_MEMORY_UTILIZATION}")
     print(f"Tensor Parallel Size: {args.TENSOR_PARALLEL_SIZE}")
