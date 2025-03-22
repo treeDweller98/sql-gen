@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --array=0-7
+#SBATCH --array=0-11
 #SBATCH --partition=long
 #SBATCH --time=1:30:00
 #SBATCH -o log/zs_minidev/log-%A-%a.out
@@ -9,20 +9,26 @@
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-source activate /home/mila/i/islamria/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/sqlgen-env
-
-export PATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen/sqlgen-env/bin:$PATH
-export PYTHONPATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen:$PYTHONPATH
+conda deactivate
+source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
+    "qwen25_7b_instruct"
     "qwen25_14b_instruct"
-    "qwen25_coder_14b_instruct"
-    "starcoder2_15b_instruct"
-    "deepseek_coder_v2_lite_instruct"
-    "granite_20b_code_instruct"
     "qwen25_32b_instruct"
+    "qwen25_coder_7b_instruct"
+    "qwen25_coder_14b_instruct"
     "qwen25_coder_32b_instruct"
+    "granite_32_8b_instruct"
+    "granite_8b_code_instruct"
+    "granite_20b_code_instruct"
     "granite_34b_code_instruct"
+    "deepseek_v2_lite_chat"
+    "deepseek_coder_v2_lite_instruct"
+    # "deepseek_r1_qwen_7b"
+    # "deepseek_r1_qwen_14b"
+    # "deepseek_r1_qwen_32b"
+    # "qwq_32b"
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
 
@@ -42,12 +48,9 @@ python main.py \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
     --DB_EXEC_TIMEOUT 30
+    # --IS_DEBUG
     # --USE_CACHED_SCHEMA
 end_time=$(date +%s)
 
 elapsed_time=$((end_time - start_time))
 echo "Total time taken: $((elapsed_time / 3600)) hours $(( (elapsed_time % 3600) / 60 )) minutes $((elapsed_time % 60)) seconds"
-
-
-# sbatch <file_Path>
-# squeue -u islamria
