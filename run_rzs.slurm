@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --array=0-4
+#SBATCH --array=0-3
 #SBATCH --partition=long
 #SBATCH --time=4:00:00
 #SBATCH -o log/rzs_minidev/log-%A-%a.out
@@ -9,13 +9,10 @@
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-source activate /home/mila/i/islamria/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/sqlgen-env
-
-export PATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen/sqlgen-env/bin:$PATH
-export PYTHONPATH=/home/mila/i/islamria/scratch/ria-vllm-abs-rl/rl-llm/sql-gen:$PYTHONPATH
+conda deactivate
+source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
-    "deepseek_r1_qwen_1_5b"
     "deepseek_r1_qwen_7b"
     "deepseek_r1_qwen_14b"
     "deepseek_r1_qwen_32b"
@@ -39,12 +36,9 @@ python main.py \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
     --DB_EXEC_TIMEOUT 30
+    # --IS_DEBUG
     # --USE_CACHED_SCHEMA
 end_time=$(date +%s)
 
 elapsed_time=$((end_time - start_time))
 echo "Total time taken: $((elapsed_time / 3600)) hours $(( (elapsed_time % 3600) / 60 )) minutes $((elapsed_time % 60)) seconds"
-
-
-# sbatch <file_Path>
-# squeue -u islamria
