@@ -128,7 +128,7 @@ def parse_args():
         help="Experiment: zs, rzs, mad, madb."
     )
     parser.add_argument(
-        '--IS_DEBUG', type=bool, default=False,
+        '--IS_DEBUG', action='store_true',
         help="If debug, runs with first 5 rows of df"
     )
 
