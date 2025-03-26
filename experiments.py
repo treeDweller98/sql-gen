@@ -1,6 +1,6 @@
-from pathlib import Path
 import pandas as pd
 from vllm import LLM, SamplingParams
+from utils import load_llm, del_llm
 from core.birdeval import evaluate
 from core.dbhandler import SQLiteDatabase
 from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
@@ -10,76 +10,82 @@ from sqlgen.picker import ReasonerPicker
 
 
 def zeroshot_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    llm: LLM, cfg: SamplingParams, 
-    output_path: Path, batch_size: int, savename: str = 'zs'
-):  
-    agent_zs = ZeroShotAgent(llm, databases, output_path)
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
+):
+    llm = load_llm(args)
+    cfg = SamplingParams(
+        temperature=0,
+        top_p=1,
+        repetition_penalty=1.05,
+        max_tokens=1024,
+    )
+    agent_zs = ZeroShotAgent(llm, databases, args.OUTPUT_PATH)
     outputs, labels = agent_zs.batched_generate(
-        df, cfg, batch_size, 
-        savename, evaluate
+        df, cfg, args.BATCH_SIZE, args.EXPERIMENT, evaluate
     )
 
 
 def reasoner_zeroshot_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    llm: LLM, cfg: SamplingParams, 
-    output_path: Path, batch_size: int, savename: str = 'rzs'
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):  
-    agent_rzs = ReasonerZeroShot(llm, databases, output_path)
+    llm = load_llm(args)
+    cfg = SamplingParams(
+        temperature=0.6,
+        top_p=0.95,
+        top_k=30,
+        repetition_penalty=1.0,
+        max_tokens=4096*2,
+    )
+    agent_rzs = ReasonerZeroShot(llm, databases, args.OUTPUT_PATH)
     outputs, labels = agent_rzs.batched_generate(
-        df, cfg, batch_size, 
-        savename, evaluate
+        df, cfg, args.BATCH_SIZE, args.EXPERIMENT, evaluate
     )
 
 
 def discuss_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    llm: LLM, cfg: SamplingParams,
-    output_path: Path, batch_size: int, savename: str = 'mad'
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):
+    llm = load_llm(args)
+    cfg = SamplingParams(
+        temperature=0,
+        top_p=1,
+        repetition_penalty=1.05,
+        max_tokens=1024*2,
+    )
     MultiAgentDiscussion.discuss(
         df=df, 
         databases=databases, 
         llm=llm,
         cfg=cfg,
-        output_path=output_path, 
-        batch_size=batch_size,
-        savename=savename, 
+        output_path=args.OUTPUT_PATH, 
+        batch_size=args.BATCH_SIZE,
+        savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
 
 
 def debate_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    llm: LLM, cfg: SamplingParams,
-    output_path: Path, batch_size: int, savename: str = 'madb'
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):
+    llm = load_llm(args)
+    cfg = SamplingParams(
+        temperature=0,
+        top_p=1,
+        repetition_penalty=1.05,
+        max_tokens=1024*2,
+    )
     MultiAgentDebate.debate(
         df=df, 
         databases=databases, 
         llm=llm,
         cfg=cfg,
-        output_path=output_path, 
-        batch_size=batch_size,
-        savename=savename, 
+        output_path=args.OUTPUT_PATH, 
+        batch_size=args.BATCH_SIZE,
+        savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
 
 def reasoner_picker_experiment(
-    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-    rzn_llm: LLM, code_llm: LLM, rzn_cfg: SamplingParams, code_cfg: SamplingParams,
-    output_path: Path, batch_size: int, savename: str = 'pick'
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):
-    ReasonerPicker.run(
-        df=df, 
-        databases=databases,
-        rzn_llm=rzn_llm,
-        code_llm=code_llm,
-        rzn_cfg=rzn_cfg,
-        code_cfg=code_cfg,
-        output_path=output_path, 
-        batch_size=batch_size,
-        savename=savename, 
-        evaluator_fn=evaluate, 
-    )
+    raise NotImplementedError
