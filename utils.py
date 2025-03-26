@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 from enum import Enum
 import pandas as pd
+from vllm import LLM, SamplingParams
 from core.dbhandler import SQLiteDatabase
 
 
@@ -51,6 +52,25 @@ def read_dataset(
         df = df.head().reset_index()
     print(f'\n\n{db_names=}\n{len(df)=}\n\n')
     return df, databases
+
+
+def load_llm(args) -> LLM:
+    llm = LLM(
+        args.MODEL.value,
+        gpu_memory_utilization=args.GPU_MEMORY_UTILIZATION,
+        tensor_parallel_size=args.TENSOR_PARALLEL_SIZE,
+        max_model_len=args.MODEL_MAX_SEQ_LEN,
+        kv_cache_dtype=args.KV_CACHE_DTYPE,
+        seed=args.SEED,
+        dtype=args.VLLM_DTYPE,
+        trust_remote_code=True,
+        enforce_eager=True,
+        enable_prefix_caching=True,
+    )
+    return llm
+
+def del_llm(llm: LLM) -> None:
+    raise NotImplementedError
 
 
 def parse_args():
