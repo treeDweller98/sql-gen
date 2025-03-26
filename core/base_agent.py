@@ -16,6 +16,14 @@ def batched(sequence: Sequence, n: int=1):
         yield sequence[ndx:min(ndx + n, l)]
 
 
+def dump_to_json(output_path: Path, filename: str, obj: object) -> None:
+    """ Dumps a list of objects to output_path/filename.json; use for keeping backups. """
+    filepath = output_path / f"{filename}.json"
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    with open(filepath, 'w') as f:
+        json.dump(obj, f, ensure_ascii=False, indent=4)
+
+
 class TextToSQLGenerationOutput:
     def __init__(
         self, input_prompts: list[str], raw_responses: list[str], parsed_sql: list[str], 
@@ -48,6 +56,7 @@ class TextToSQLGenerationOutput:
         print("Total Input Tokens = ", sum(self.n_out_tokens))
         
         
+        
 class TextToSQL(ABC):
     """ Base class for all Text-to-SQL generation agents. """
     # TODO: maybe implement a prompt format cleanup function; 
@@ -55,7 +64,6 @@ class TextToSQL(ABC):
 
     def __init__(
         self, llm: LLM, databases: dict[str, SQLiteDatabase], 
-        output_path: Path,
     ) -> None:
         """ Attributes
             ----------
@@ -63,12 +71,9 @@ class TextToSQL(ABC):
                     Text generation model for offline generation
                 databases: dict[str, SQLiteDatabase]
                     Dictionary of SQLiteDatabases indexed by db_id
-                output_path: Path
-                    Directory to dump output json
         """
         self.llm = llm
         self.databases = databases
-        self.output_path = output_path
 
     def process_bird_df(self, idx: int, row: pd.DataFrame, **kwargs) -> tuple:
         """ Takes a row of a DataFrame of BIRD Bench questions. 
@@ -96,13 +101,21 @@ class TextToSQL(ABC):
 
         return TextToSQLGenerationOutput(input_prompts, raw_responses, parsed_sql, n_in_tokens, n_out_tokens)
     
+    def parse_with_regex(self, response: str) -> str:
+        """ Extracts SQL from responses containing '''sql ... ''' using regex. """
+        try:
+            sql = re.search(r'```sql(.*?)```', response, re.DOTALL).group(1).strip()
+        except AttributeError as e:
+            sql = ''
+        return sql
+    
     def batched_generate(
-        self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int, 
+        self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int, output_path: Path,
         savename: str, evaluator_fn: Optional[Callable] = None, **kwargs
     ) -> tuple[TextToSQLGenerationOutput, Optional[list[bool]]]:
         """ Generates SQL from a DataFrame of BIRD questions. 
             Evaluates performance using evaluator_fn.
-            Saves responses with savename as suffix.
+            Saves responses with savename as suffix in output_dir.
             Kwargs passed on to process_bird_df().
             Returns TextGenerationOutput, along with labels if evaluate_fn given
         """
@@ -127,8 +140,8 @@ class TextToSQL(ABC):
             n_in_tokens.extend(outputs.n_in_tokens)
             n_out_tokens.extend(outputs.n_out_tokens)
             if savename:
-                self.dump_to_json(f"{savename}_raw", raw_responses)
-                self.dump_to_json(f"{savename}_clean", parsed_sql)
+                dump_to_json(output_path, f"{savename}_raw", raw_responses)
+                dump_to_json(output_path, f"{savename}_clean", parsed_sql)
         
         final_output = TextToSQLGenerationOutput(input_prompts, raw_responses, parsed_sql, n_in_tokens, n_out_tokens)
         final_df = pd.concat(
@@ -138,24 +151,9 @@ class TextToSQL(ABC):
         if evaluator_fn:
             labels, report = evaluator_fn(final_df, self.databases, f'parsed_sql_{savename}')
             final_df[f'label_{savename}'] = labels
-            with open(self.output_path/f'results_{savename}.txt', 'w') as f:
+            with open(output_path/f'results_{savename}.txt', 'w') as f:
                 f.write(report)
         else:
             labels = None
-        final_df.to_json(self.output_path / f"df_batgen_{savename}.json", orient='records')
+        final_df.to_json(output_path / f"df_batgen_{savename}.json", orient='records')
         return final_output, labels
-
-    def parse_with_regex(self, response: str) -> str:
-        """ Extracts SQL from responses containing '''sql ... ''' using regex. """
-        try:
-            sql = re.search(r'```sql(.*?)```', response, re.DOTALL).group(1).strip()
-        except AttributeError as e:
-            sql = ''
-        return sql
-        
-    def dump_to_json(self, filename: str, obj: object) -> None:
-        """ Dumps a list of objects to self.output_path/filename.json; use for keeping backups. """
-        filepath = self.output_path / f"{filename}.json"
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-        with open(filepath, 'w') as f:
-            json.dump(obj, f, ensure_ascii=False, indent=4)
