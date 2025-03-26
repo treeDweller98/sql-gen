@@ -19,9 +19,9 @@ def zeroshot_experiment(
         repetition_penalty=1.05,
         max_tokens=1024,
     )
-    agent_zs = ZeroShotAgent(llm, databases, args.OUTPUT_PATH)
+    agent_zs = ZeroShotAgent(llm, databases)
     outputs, labels = agent_zs.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.EXPERIMENT, evaluate
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, evaluate
     )
 
 
@@ -36,9 +36,9 @@ def reasoner_zeroshot_experiment(
         repetition_penalty=1.0,
         max_tokens=4096*2,
     )
-    agent_rzs = ReasonerZeroShot(llm, databases, args.OUTPUT_PATH)
+    agent_rzs = ReasonerZeroShot(llm, databases)
     outputs, labels = agent_rzs.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.EXPERIMENT, evaluate
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, evaluate
     )
 
 
@@ -57,8 +57,8 @@ def discuss_experiment(
         databases=databases, 
         llm=llm,
         cfg=cfg,
-        output_path=args.OUTPUT_PATH, 
         batch_size=args.BATCH_SIZE,
+        output_path=args.OUTPUT_PATH, 
         savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
@@ -79,8 +79,8 @@ def debate_experiment(
         databases=databases, 
         llm=llm,
         cfg=cfg,
-        output_path=args.OUTPUT_PATH, 
         batch_size=args.BATCH_SIZE,
+        output_path=args.OUTPUT_PATH, 
         savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
