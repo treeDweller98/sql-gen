@@ -9,7 +9,6 @@
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-conda deactivate
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(

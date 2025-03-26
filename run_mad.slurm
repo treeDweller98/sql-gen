@@ -9,7 +9,6 @@
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-conda deactivate
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
@@ -48,7 +47,3 @@ end_time=$(date +%s)
 
 elapsed_time=$((end_time - start_time))
 echo "Total time taken: $((elapsed_time / 3600)) hours $(( (elapsed_time % 3600) / 60 )) minutes $((elapsed_time % 60)) seconds"
-
-
-# sbatch <file_Path>
-# squeue -u islamria

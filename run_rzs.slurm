@@ -2,14 +2,13 @@
 
 #SBATCH --array=0-3
 #SBATCH --partition=long
-#SBATCH --time=4:00:00
+#SBATCH --time=2:00:00
 #SBATCH -o log/rzs_minidev/log-%A-%a.out
 #SBATCH -e log/rzs_minidev/log-%A-%a.err
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
 
-conda deactivate
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
