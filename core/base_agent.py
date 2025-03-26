@@ -55,7 +55,7 @@ class TextToSQLGenerationOutput:
         print("Total Input Tokens = ", sum(self.n_in_tokens))
         print("Total Input Tokens = ", sum(self.n_out_tokens))
         
-        
+
         
 class TextToSQL(ABC):
     """ Base class for all Text-to-SQL generation agents. """
@@ -110,8 +110,9 @@ class TextToSQL(ABC):
         return sql
     
     def batched_generate(
-        self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int, output_path: Path,
-        savename: str, evaluator_fn: Optional[Callable] = None, **kwargs
+        self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int,
+        output_path: Path, savename: str, evaluator_fn: Optional[Callable] = None, 
+        **kwargs
     ) -> tuple[TextToSQLGenerationOutput, Optional[list[bool]]]:
         """ Generates SQL from a DataFrame of BIRD questions. 
             Evaluates performance using evaluator_fn.
