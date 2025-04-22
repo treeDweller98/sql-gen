@@ -183,7 +183,7 @@ def parse_args():
     # Experiment to run
     parser.add_argument(
         '--EXPERIMENT', type=str,
-        help="Experiment: zs, rzs, mad, madb."
+        help="Experiment: zs, rzs, mad, madb ,grpo"
     )
     parser.add_argument(
         '--IS_DEBUG', action='store_true',

@@ -35,7 +35,7 @@ if __name__ == '__main__':
             debate_experiment(args, df, databases)
         case 'pick':
             reasoner_picker_experiment(args, df, databases)
-        case 'train_grpo':
+        case 'grpo':
             train_grpo(args, df, databases)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
