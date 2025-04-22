@@ -11,8 +11,11 @@
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
+    "qwen25_1_5b"
     "qwen25_3b"
+    "qwen25_1_5b_instruct"
     "qwen25_3b_instruct"
+    "qwen25_coder_1_5b_instruct"
     "qwen25_coder_3b_instruct"
     "granite_3b_code_instruct_2k"
     "granite_32_2b_instruct"
