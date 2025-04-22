@@ -21,7 +21,7 @@ models_list=(
     "deepseek_v2_lite_chat"
     "deepseek_coder_v2_lite_instruct"
     "granite_32_8b_instruct"
-    "granite_8b_code_instruct"
+    "granite_8b_code_instruct_4k"
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
 
