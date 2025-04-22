@@ -113,3 +113,27 @@ if __name__ == '__main__':
         for db_id in [f.name for f in (input_path / db_foldername).iterdir()]
     }
     set_db(databases)
+        
+    # correct, wrong, wrong
+    correct = "SELECT SUM(Consumption) AS TotalConsumption\nFROM yearmonth\nWHERE CustomerID = 6 AND Date BETWEEN '201308' AND '201311'",
+    completions = [
+        [{
+            'db_id': 'debit_card_specializing',
+            'gold_sql': "SELECT SUM(Consumption) FROM yearmonth WHERE CustomerID = 6 AND Date BETWEEN '201308' AND '201311'",
+            'completions': f"<think>\nHere are some thoughts\n</think>\nHere is my summary and answer\n```sql\n{correct}\n```",
+        }],
+        [{
+            'db_id': 'debit_card_specializing',
+            'gold_sql': "SELECT CAST(SUM(IIF(Currency = 'EUR', 1, 0)) AS FLOAT) / SUM(IIF(Currency = 'CZK', 1, 0)) AS ratio FROM customers",
+            'completions': "SELECT CAST(COUNT(CASE WHEN Currency = 'EUR' THEN 1 ELSE NULL END) AS REAL) * 100 / COUNT(CASE WHEN Currency = 'CZK' THEN 1 ELSE NULL END) FROM customers", 
+        }],
+        [{
+            'db_id': 'debit_card_specializing',
+            'gold_sql': "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM' AND SUBSTR(T2.Date, 1, 4) = '2012' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) ASC LIMIT 1",
+            'completions': "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN gasstations AS T2 ON T1.CustomerID = T2.GasStationID INNER JOIN yearmonth AS T3 ON T1.CustomerID = T3.CustomerID WHERE SUBSTR(T3.Date, 1, 4) = '2012' GROUP BY T1.CustomerID ORDER BY SUM(T3.Consumption) ASC LIMIT 1",
+        }],
+
+
+    ]
+
+    
