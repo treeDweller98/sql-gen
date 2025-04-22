@@ -34,6 +34,8 @@ python main.py \
     --MODEL_MAX_SEQ_LEN 8192 \
     --KV_CACHE_DTYPE "auto" \
     --VLLM_DTYPE "auto" \
+    --ENFORCE_EAGER \
+    --ENABLE_PREFIX_CACHING \
     --SEED 42 \
     --BATCH_SIZE 128 \
     --INPUT_PATH "data/bird-minidev" \

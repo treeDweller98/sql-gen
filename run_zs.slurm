@@ -40,13 +40,15 @@ python main.py \
     --MODEL_MAX_SEQ_LEN 8192 \
     --KV_CACHE_DTYPE "auto" \
     --VLLM_DTYPE "auto" \
+    --ENFORCE_EAGER \
+    --ENABLE_PREFIX_CACHING \
     --SEED 42 \
     --BATCH_SIZE 128 \
     --INPUT_PATH "data/bird-minidev" \
     --OUTPUT_PATH "results/zs/{model}_{experiment}/" \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
-    --DB_EXEC_TIMEOUT 30
+    --DB_EXEC_TIMEOUT 30 \
     # --IS_DEBUG
     # --USE_CACHED_SCHEMA
 end_time=$(date +%s)
