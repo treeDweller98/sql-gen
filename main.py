@@ -1,12 +1,13 @@
 import datetime
 from utils import read_dataset, parse_args
-from experiments import (
+from sqlgen.experiments import (
     zeroshot_experiment,
     reasoner_zeroshot_experiment,
     discuss_experiment,
     debate_experiment,
     reasoner_picker_experiment,
 )
+from grpo.train import train_grpo
 
 
 if __name__ == '__main__':
@@ -34,6 +35,8 @@ if __name__ == '__main__':
             debate_experiment(args, df, databases)
         case 'pick':
             reasoner_picker_experiment(args, df, databases)
+        case 'train_grpo':
+            train_grpo(args, df, databases)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
 
