@@ -24,8 +24,8 @@ def train_grpo(args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase]):
         args.MODEL.value,
         torch_dtype=torch.bfloat16,
         attn_implementation="flash_attention_2",
-        device_map=None
-    ).to("cuda")
+        device_map=None             # should it be none?
+    ).to("cuda")                    # using multi-gpu --- verify
 
     tokenizer = AutoTokenizer.from_pretrained(args.MODEL)
     tokenizer.pad_token = tokenizer.eos_token
@@ -48,13 +48,13 @@ def train_grpo(args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase]):
         num_generations=16,
         max_prompt_length=2048,             # Verify 
         max_completion_length=4096,
-        num_train_epochs=1,
+        num_train_epochs=1,                 # set to whatever
         save_steps=100,
         max_grad_norm=0.1,
-        report_to="wandb",
+        report_to="wandb",                  # setup wandb
         log_on_each_node=False,
 
-        use_vllm=True,
+        use_vllm=True,                      # figure out if server needs to be served
         vllm_device="auto",
         vllm_gpu_memory_utilization=0.9,
     )
