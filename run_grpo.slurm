@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --partition=long
-#SBATCH --time=24:00
+#SBATCH --time=24:00:00
 #SBATCH -o log/grpo/log-%A-%a.out
 #SBATCH -e log/grpo/log-%A-%a.err 
 #SBATCH -J rl-llm
