@@ -15,14 +15,17 @@ from core.dbhandler import SQLiteDatabase
 
 
 class SupoortedModels(Enum):
+    qwen25_1_5b = "Qwen/Qwen2.5-1.5B"
     qwen25_3b = "Qwen/Qwen2.5-3B"
     qwen25_7b = "Qwen/Qwen2.5-7B"
 
+    qwen25_1_5b_instruct = "Qwen/Qwen2.5-1.5B-Instruct"
     qwen25_3b_instruct = "Qwen/Qwen2.5-3B-Instruct"
     qwen25_7b_instruct = "Qwen/Qwen2.5-7B-Instruct"
     qwen25_14b_instruct = "Qwen/Qwen2.5-14B-Instruct"
     qwen25_32b_instruct = "Qwen/Qwen2.5-32B-Instruct"
 
+    qwen25_coder_1_5b_instruct = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
     qwen25_coder_3b_instruct = "Qwen/Qwen2.5-Coder-3B-Instruct"
     qwen25_coder_7b_instruct = "Qwen/Qwen2.5-Coder-7B-Instruct"
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
