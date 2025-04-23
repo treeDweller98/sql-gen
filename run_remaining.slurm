@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --array=0-4
+#SBATCH --array=0
 #SBATCH --partition=long
-#SBATCH --time=24:00:00
+#SBATCH --time=36:00:00
 #SBATCH -o log/mad-minidev/log-%A-%a.out
 #SBATCH -e log/mad-minidev/log-%A-%a.err 
 #SBATCH -J rl-llm
@@ -12,6 +12,7 @@
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
+    "deepseek_coder_v2_lite_instruct"
     "qwen25_3b_instruct"
     "qwen25_coder_3b_instruct"
     "granite_32_2b_instruct"
@@ -19,6 +20,7 @@ models_list=(
     "granite_8b_code_instruct_4k"
 )
 model_lens=(
+    8192
     8192
     8192
     8192
