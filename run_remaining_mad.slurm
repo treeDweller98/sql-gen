@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --array=0-5
+#SBATCH --array=0-7
 #SBATCH --partition=long
 #SBATCH --time=36:00:00
-#SBATCH -o log/mad-minidev/log-%A-%a.out
-#SBATCH -e log/mad-minidev/log-%A-%a.err 
+#SBATCH -o log/mad_minidev/log-%A-%a.out
+#SBATCH -e log/mad_minidev/log-%A-%a.err 
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:2
 #SBATCH --mem=48G
@@ -18,6 +18,8 @@ models_list=(
     "granite_32_2b_instruct"
     "granite_3b_code_instruct_2k"
     "granite_8b_code_instruct_4k"
+    "granite_34b_code_instruct_8k"
+    "granite_20b_code_instruct_8k"
 )
 model_lens=(
     8192
@@ -26,6 +28,8 @@ model_lens=(
     8192
     2048
     4096
+    8192
+    8192
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
 model_len=${model_lens[$SLURM_ARRAY_TASK_ID]}

@@ -3,8 +3,8 @@
 #SBATCH --array=0-9
 #SBATCH --partition=long
 #SBATCH --time=24:00:00
-#SBATCH -o log/mad-minidev/log-%A-%a.out 
-#SBATCH -e log/mad-minidev/log-%A-%a.err 
+#SBATCH -o log/mad_minidev/log-%A-%a.out 
+#SBATCH -e log/mad_minidev/log-%A-%a.err 
 #SBATCH -J rl-llm
 #SBATCH --gres=gpu:l40s:4
 #SBATCH --mem=64G
