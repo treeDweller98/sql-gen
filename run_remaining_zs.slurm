@@ -1,31 +1,42 @@
 #!/bin/bash
 
-#SBATCH --array=0-3
+#SBATCH --array=0-5
 #SBATCH --partition=long
-#SBATCH --time=2:00:00
-#SBATCH -o log/rzs_minidev/log-%A-%a.out
-#SBATCH -e log/rzs_minidev/log-%A-%a.err
+#SBATCH --time=1:30:00
+#SBATCH -o log/zs-minidev/log-%A-%a.out
+#SBATCH -e log/zs-minidev/log-%A-%a.err 
 #SBATCH -J rl-llm
-#SBATCH --gres=gpu:l40s:4
-#SBATCH --mem=64G
+#SBATCH --gres=gpu:l40s:2
+#SBATCH --mem=48G
 
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 
 models_list=(
-    "deepseek_r1_qwen_7b"
-    "deepseek_r1_qwen_14b"
-    "deepseek_r1_qwen_32b"
-    "qwq_32b"
+    "qwen25_3b_instruct"
+    "qwen25_coder_3b_instruct"
+    "granite_32_2b_instruct"
+    "granite_3b_code_instruct_2k"
+    "granite_8b_code_instruct_4k"
+    "granite_34b_code_instruct_8k"
+)
+model_lens=(
+    8192
+    8192
+    8192
+    2048
+    4096
+    8192
 )
 model=${models_list[$SLURM_ARRAY_TASK_ID]}
+model_len=${model_lens[$SLURM_ARRAY_TASK_ID]}
 
 start_time=$(date +%s)
 python main.py \
-    --EXPERIMENT "rzs" \
+    --EXPERIMENT "mad" \
     --MODEL $model \
     --GPU_MEMORY_UTILIZATION 0.97 \
-    --TENSOR_PARALLEL_SIZE 4 \
-    --MODEL_MAX_SEQ_LEN 8192 \
+    --TENSOR_PARALLEL_SIZE 2 \
+    --MODEL_MAX_SEQ_LEN $model_len \
     --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
     --KV_CACHE_DTYPE "auto" \
     --VLLM_DTYPE "auto" \
@@ -34,7 +45,7 @@ python main.py \
     --SEED 42 \
     --BATCH_SIZE 128 \
     --INPUT_PATH "data/bird-minidev" \
-    --OUTPUT_PATH "results/rzs/{model}_{experiment}/" \
+    --OUTPUT_PATH "results/zs/{model}_{experiment}/" \
     --BIRD_QUESTION_FILENAME "dev.json" \
     --DB_FOLDERNAME "dev_databases" \
     --DB_EXEC_TIMEOUT 30

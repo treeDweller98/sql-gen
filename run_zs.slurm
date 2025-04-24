@@ -38,6 +38,7 @@ python main.py \
     --GPU_MEMORY_UTILIZATION 0.97 \
     --TENSOR_PARALLEL_SIZE 4 \
     --MODEL_MAX_SEQ_LEN 8192 \
+    --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
     --KV_CACHE_DTYPE "auto" \
     --VLLM_DTYPE "auto" \
     --ENFORCE_EAGER \
