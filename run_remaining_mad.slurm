@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --array=0-4
+#SBATCH --array=0-5
 #SBATCH --partition=long
 #SBATCH --time=36:00:00
 #SBATCH -o log/mad-minidev/log-%A-%a.out
@@ -14,11 +14,13 @@ source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
 models_list=(
     "qwen25_3b_instruct"
     "qwen25_coder_3b_instruct"
+    "deepseek_coder_v2_lite_instruct"
     "granite_32_2b_instruct"
     "granite_3b_code_instruct_2k"
     "granite_8b_code_instruct_4k"
 )
 model_lens=(
+    8192
     8192
     8192
     8192
