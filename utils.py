@@ -15,6 +15,16 @@ from core.dbhandler import SQLiteDatabase
 
 
 class SupoortedModels(Enum):
+    codellama_7b_instruct  = "codellama/CodeLlama-7b-Instruct-hf"
+    codellama_13b_instruct = "codellama/CodeLlama-13b-Instruct-hf"
+    codellama_34b_instruct = "codellama/CodeLlama-34b-Instruct-hf"
+
+    codegemma_7b_it = "google/codegemma-7b-it"
+    
+    gemma3_4b_it  = "google/gemma-3-4b-it"
+    gemma3_12b_it = "google/gemma-3-12b-it"
+    gemma3_27b_it = "google/gemma-3-27b-it"
+
     qwen25_1_5b = "Qwen/Qwen2.5-1.5B"
     qwen25_3b = "Qwen/Qwen2.5-3B"
     qwen25_7b = "Qwen/Qwen2.5-7B"
@@ -42,7 +52,7 @@ class SupoortedModels(Enum):
     deepseek_v2_lite_chat = "deepseek-ai/DeepSeek-V2-Lite-Chat"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
 
-    starcoder_15b_instruct = "bigcode/starcoder2-15b-instruct-v0.1"
+    starcoder_15b_instruct = "bigcode/starcoder2-15b-instruct-v0.1"     # turn off prefix-caching
 
     deepseek_r1_qwen_7b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
     deepseek_r1_qwen_14b = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
@@ -60,7 +70,7 @@ def load_llm(args) -> LLM:
         enable_prefix_caching=args.ENABLE_PREFIX_CACHING,
         enforce_eager=args.ENFORCE_EAGER,
         dtype=args.VLLM_DTYPE,
-        distributed_executor_backend=args.DISTRIBUTED_EXECUTOR_BACKEND,
+        # distributed_executor_backend=args.DISTRIBUTED_EXECUTOR_BACKEND,
         seed=args.SEED,
         trust_remote_code=True,
     )
