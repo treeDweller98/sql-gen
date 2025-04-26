@@ -5,7 +5,7 @@
 #SBATCH --time=1:30:00
 #SBATCH -o log/zs_minidev/log-%A-%a.out
 #SBATCH -e log/zs_minidev/log-%A-%a.err 
-#SBATCH -J rl-llm
+#SBATCH -J rl-llm-zs
 #SBATCH --gres=gpu:l40s:2
 #SBATCH --mem=64G
 
