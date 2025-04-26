@@ -6,7 +6,7 @@
 #SBATCH -o log/rzs_minidev/log-%A-%a.out
 #SBATCH -e log/rzs_minidev/log-%A-%a.err
 #SBATCH -J rl-llm
-#SBATCH --gres=gpu:l40s:4
+#SBATCH --gres=gpu:l40s:2
 #SBATCH --mem=64G
 
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
@@ -24,7 +24,7 @@ python main.py \
     --EXPERIMENT "rzs" \
     --MODEL $model \
     --GPU_MEMORY_UTILIZATION 0.97 \
-    --TENSOR_PARALLEL_SIZE 4 \
+    --TENSOR_PARALLEL_SIZE 2 \
     --MODEL_MAX_SEQ_LEN 8192 \
     --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
     --KV_CACHE_DTYPE "auto" \
@@ -32,7 +32,7 @@ python main.py \
     --ENFORCE_EAGER \
     --ENABLE_PREFIX_CACHING \
     --SEED 42 \
-    --BATCH_SIZE 128 \
+    --BATCH_SIZE 256 \
     --INPUT_PATH "data/bird-minidev" \
     --OUTPUT_PATH "results/rzs/{model}_{experiment}/" \
     --BIRD_QUESTION_FILENAME "dev.json" \
