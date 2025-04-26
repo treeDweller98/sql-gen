@@ -58,7 +58,7 @@ class SQLiteDatabase:
     
     def __str__(self):
         """ Returns the database schema as a human-readable/executable string. """
-        return "\n\n".join( list(self.schema.values()) )
+        return "\n".join( list(self.schema.values()) )
     
     def run_query(self, sql: str, timeout: Optional[float] = None) -> list[tuple]:
         """ Executes SQL query and fetches all rows. """
