@@ -31,8 +31,8 @@ class SupoortedModels(Enum):
     qwen25_coder_14b_instruct = "Qwen/Qwen2.5-Coder-14B-Instruct"
     qwen25_coder_32b_instruct = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
-    granite_3b_code_instruct_2k = "ibm-granite/granite-3b-code-instruct-2k"
-    granite_8b_code_instruct_4k = "ibm-granite/granite-8b-code-instruct-4k"
+    granite_3b_code_instruct_128k = "ibm-granite/granite-3b-code-instruct-128k"
+    granite_8b_code_instruct_128k = "ibm-granite/granite-8b-code-instruct-128k"
     granite_20b_code_instruct_8k = "ibm-granite/granite-20b-code-instruct-8k"
     granite_34b_code_instruct_8k = "ibm-granite/granite-34b-code-instruct-8k"
 

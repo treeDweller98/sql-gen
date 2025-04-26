@@ -16,8 +16,8 @@ models_list=(
     "qwen25_coder_3b_instruct"
     "deepseek_coder_v2_lite_instruct"
     "granite_32_2b_instruct"
-    "granite_3b_code_instruct_2k"
-    "granite_8b_code_instruct_4k"
+    "granite_3b_code_instruct_128k"
+    "granite_8b_code_instruct_128k"
     "granite_34b_code_instruct_8k"
     "granite_20b_code_instruct_8k"
 )
