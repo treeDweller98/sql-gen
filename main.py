@@ -6,6 +6,8 @@ from sqlgen.experiments import (
     discuss_experiment,
     debate_experiment,
     reasoner_picker_experiment,
+    planner_plan_experiment,
+    planner_exec_experiment,
 )
 from grpo.train import train_grpo
 
@@ -35,6 +37,10 @@ if __name__ == '__main__':
             debate_experiment(args, df, databases)
         case 'pick':
             reasoner_picker_experiment(args, df, databases)
+        case 'plan':
+            planner_plan_experiment(args, df, databases)
+        case 'plan-exec':
+            planner_exec_experiment(args, df, databases)
         case 'grpo':
             train_grpo(args, df, databases)
         case _:
