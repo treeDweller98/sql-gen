@@ -64,6 +64,7 @@ class SupoortedModels(Enum):
 def load_llm(args) -> LLM:
     llm = LLM(
         args.MODEL.value,
+        max_model_len=args.MODEL_MAX_SEQ_LEN,
         gpu_memory_utilization=args.GPU_MEMORY_UTILIZATION,
         tensor_parallel_size=args.TENSOR_PARALLEL_SIZE,
         kv_cache_dtype=args.KV_CACHE_DTYPE,
