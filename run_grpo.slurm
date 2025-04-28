@@ -27,7 +27,7 @@ model="qwen25_coder_3b_instruct"
 
 start_time=$(date +%s)
 accelerate launch --config_file deepspeed.yaml --num_processes 1 \
-    python main.py \
+    main.py \
         --EXPERIMENT "grpo" \
         --MODEL $model \
         --OUTPUT_PATH "results/grpo/{model}_{experiment}/" \
