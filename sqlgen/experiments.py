@@ -50,7 +50,7 @@ def planner_plan_experiment(
         top_p=0.95,
         top_k=30,
         repetition_penalty=1.0,
-        max_tokens=4096*2,
+        max_tokens=4096*4,
     )
     agent_plan = PlannerAgent(llm, databases)
     outputs, labels = agent_plan.batched_generate(
