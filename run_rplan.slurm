@@ -2,11 +2,11 @@
 
 #SBATCH --array=0-3
 #SBATCH --partition=long
-#SBATCH --time=2:00:00
+#SBATCH --time=3:00:00
 #SBATCH -o log/rplan_minidev/log-%A-%a.out
 #SBATCH -e log/rplan_minidev/log-%A-%a.err
 #SBATCH -J rl-llm-rplan
-#SBATCH --gres=gpu:l40s:4
+#SBATCH --gres=gpu:l40s:2
 #SBATCH --mem=48G
 
 source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
@@ -24,7 +24,7 @@ python main.py \
     --EXPERIMENT "plan" \
     --MODEL $model \
     --GPU_MEMORY_UTILIZATION 0.97 \
-    --TENSOR_PARALLEL_SIZE 4 \
+    --TENSOR_PARALLEL_SIZE 2 \
     --MODEL_MAX_SEQ_LEN 8192 \
     --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
     --KV_CACHE_DTYPE "auto" \
