@@ -103,7 +103,7 @@ def read_dataset(
     """
     df = pd.read_json(input_path / bird_question_filename)
     df.rename(columns={'SQL': 'gold_sql'}, inplace=True)
-    db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir()]
+    db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir() if f.is_dir()]
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
         for db_id in db_names
