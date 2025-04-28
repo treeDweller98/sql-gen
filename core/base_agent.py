@@ -104,6 +104,8 @@ class TextToSQL(ABC):
     def parse_with_regex(self, response: str) -> str:
         """ Extracts SQL from responses containing '''sql ... ''' using regex. """
         try:
+            if "```sqlite" in response:
+                response = response.replace("```sqlite", "```sql")
             sql = re.search(r'```sql(.*?)```', response, re.DOTALL).group(1).strip()
         except AttributeError as e:
             sql = ''
