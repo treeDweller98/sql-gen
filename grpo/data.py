@@ -16,7 +16,7 @@ def make_bird_grpo_dataset(df: pd.DataFrame, databases: dict[str, SQLiteDatabase
             "<think>\n"
             "USE THIS AS A SCRATCHPAD FOR YOUR REASONING\n"
             "</think>\n"
-            "THE STEP BY STEP REASONING TO DERIVE THE ANSWER\n"
+            "THE DETAILED STEP BY STEP REASONING TO DERIVE THE ANSWER\n"
             "```sql\n"
             "YOUR FINAL SQLITE QUERY\n"
             "```"
