@@ -71,7 +71,7 @@ def load_llm(args) -> LLM:
         enable_prefix_caching=args.ENABLE_PREFIX_CACHING,
         enforce_eager=args.ENFORCE_EAGER,
         dtype=args.VLLM_DTYPE,
-        # distributed_executor_backend=args.DISTRIBUTED_EXECUTOR_BACKEND,
+        distributed_executor_backend=args.DISTRIBUTED_EXECUTOR_BACKEND,
         seed=args.SEED,
         trust_remote_code=True,
     )
