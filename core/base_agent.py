@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from abc import ABC
 from typing import Optional, Callable, Sequence
+import datetime
 from tqdm import tqdm
 import pandas as pd
 from vllm import LLM, SamplingParams
@@ -122,6 +123,7 @@ class TextToSQL(ABC):
             Kwargs passed on to process_bird_df().
             Returns TextGenerationOutput, along with labels if evaluate_fn given
         """
+        start_time = datetime.datetime.now()
         input_prompts: list[str] = []
         raw_responses: list[str] = []
         parsed_sql:    list[str] = []
@@ -151,6 +153,7 @@ class TextToSQL(ABC):
             [df, final_output.as_dataframe(col_suffix=savename)], 
             axis=1,
         )
+        print(f"batched_generate() completed in {datetime.datetime.now() - start_time}")
         if evaluator_fn:
             labels, report = evaluator_fn(final_df, self.databases, f'parsed_sql_{savename}')
             final_df[f'label_{savename}'] = labels

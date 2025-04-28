@@ -1,4 +1,5 @@
 ### core/birdeval.py
+import datetime
 import pandas as pd
 from tqdm import tqdm
 from core.dbhandler import SQLiteDatabase
@@ -50,6 +51,8 @@ def calculate_rves():
     
 def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = 'gold_sql') -> tuple[list[bool], str]:
     print(f'\n--- Evaluating Performance | TrueCol: {true_col} | PredCol: {pred_col} ---')
+    start_time = datetime.datetime.now()
+
     labels = get_correctness_labels(df, databases, pred_col, true_col)
     ex_report = calculate_accuracy(df, pred_col, true_col, labels)
     # f1_report = calculate_softf1(df, pred_col, true_col, labels)
@@ -59,5 +62,5 @@ def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: s
     # report = "\n\n".join(ex_report, f1_report, ves_report, rves_report)
     report = ex_report      # until the rest gets implemented
     print(report)
-    print(f'--- Evaluation Completed | TrueCol: {true_col} | PredCol: {pred_col} ---\n')
+    print(f'--- Evaluation Completed in {datetime.datetime.now() - start_time} | TrueCol: {true_col} | PredCol: {pred_col} ---\n')
     return labels, report
