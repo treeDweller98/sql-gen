@@ -64,7 +64,7 @@ class SupoortedModels(Enum):
 def load_llm(args) -> LLM:
     llm = LLM(
         args.MODEL.value,
-        max_model_len=args.MODEL_MAX_SEQ_LEN,
+        max_model_len=args.MAX_MODEL_LEN,
         gpu_memory_utilization=args.GPU_MEMORY_UTILIZATION,
         tensor_parallel_size=args.TENSOR_PARALLEL_SIZE,
         kv_cache_dtype=args.KV_CACHE_DTYPE,
@@ -128,8 +128,8 @@ def parse_args():
         help="Number of GPUs for tensor parallelism."
     )
     parser.add_argument(
-        '--MODEL_MAX_SEQ_LEN', type=int, default=4096 * 2, 
-        help="Maximum sequence length for the model (must be integer multiple of 4096)."
+        '--MAX_MODEL_LEN', type=int, default=4096 * 2, 
+        help="Maximum length of the model (must be integer multiple of 4096)."
     )
     parser.add_argument(
         '--KV_CACHE_DTYPE', type=str, default='auto', choices=['auto', 'fp8'],
@@ -216,7 +216,7 @@ def parse_args():
 
     print(f"GPU Memory Utilization: {args.GPU_MEMORY_UTILIZATION}")
     print(f"Tensor Parallel Size: {args.TENSOR_PARALLEL_SIZE}")
-    print(f"Model Max Seq Len: {args.MODEL_MAX_SEQ_LEN}")
+    print(f"Max Model Len: {args.MAX_MODEL_LEN}")
     print(f"KV Cache Dtype: {args.KV_CACHE_DTYPE}")
     print(f"VLLM dtype: {args.VLLM_DTYPE}")
     print(f"Enable Prefix Caching: {args.ENABLE_PREFIX_CACHING}")
@@ -253,6 +253,7 @@ if __name__ == '__main__':
 #     --TENSOR_PARALLEL_SIZE 4 \
 #     --KV_CACHE_DTYPE "auto" \
 #     --VLLM_DTYPE "auto" \
+#     --MAX_MODEL_LEN 8192 \
 #     --ENFORCE_EAGER \
 #     --ENABLE_PREFIX_CACHING \
 #     --SEED 42 \
