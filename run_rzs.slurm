@@ -9,7 +9,8 @@
 #SBATCH --gres=gpu:l40s:2
 #SBATCH --mem=48G
 
-source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv/bin/activate
+module load cuda/12.6.0
+source ~/scratch/ria-vlm-abs-rl/rl-llm/sql-gen/.venv-sql/bin/activate
 
 models_list=(
     "deepseek_r1_qwen_7b"
