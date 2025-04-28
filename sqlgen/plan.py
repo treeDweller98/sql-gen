@@ -17,6 +17,8 @@ class PlannerAgent(TextToSQL):
     
     def parse_with_regex(self, response: str) -> str:
         """ Extracts answer by removing content in <think></think> using regex. """
+        if "</think>" in response:
+            response = "<think>" + response
         plan = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
         return plan
 
