@@ -43,7 +43,7 @@ class CoderAgent(TextToSQL):
         return prompt
     
     
-class MultiPlanCoderAgent(CoderAgent):
+class MultiPlanCoderAgent(TextToSQL):
     def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series) -> tuple:
         schema, question = super().process_bird_df(idx, row)
         return schema, question, plans[idx]
