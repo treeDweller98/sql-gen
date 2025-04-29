@@ -48,6 +48,8 @@ class SupoortedModels(Enum):
 
     granite_32_2b_instruct = "ibm-granite/granite-3.2-2b-instruct"
     granite_32_8b_instruct = "ibm-granite/granite-3.2-8b-instruct"
+    granite_33_2b_instruct = "ibm-granite/granite-3.3-2b-instruct"
+    granite_33_8b_instruct = "ibm-granite/granite-3.3-8b-instruct"
 
     deepseek_v2_lite_chat = "deepseek-ai/DeepSeek-V2-Lite-Chat"
     deepseek_coder_v2_lite_instruct = "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct"
