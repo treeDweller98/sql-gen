@@ -1,5 +1,9 @@
+from typing import Callable
 import re
+from pathlib import Path
 import pandas as pd
+from vllm import LLM, SamplingParams
+from core.dbhandler import SQLiteDatabase
 from core.base_agent import TextToSQL
 
 
@@ -24,16 +28,61 @@ class PlannerAgent(TextToSQL):
 
 
 class CoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plan: str) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series) -> tuple:
         schema, question = super().process_bird_df(idx, row)
-        return schema, question, plan
+        return schema, question, plans[idx]
     
     def generate_prompt(self, schema: str, question: str, plan: str) -> str:
         prompt = (
-            f"Based on the following plan and schema, generate an SQLite query to answer the question.\n\n"
+            f"Based on the given schema and plan, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### PLAN\n{plan}\n\n"
             f"### QUESTION\n{question}\n\n"
             "Let's think step by step"
         )
         return prompt
+    
+    
+class MultiPlanCoderAgent(CoderAgent):
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series) -> tuple:
+        schema, question = super().process_bird_df(idx, row)
+        return schema, question, plans[idx]
+    
+    def generate_prompt(self, schema: str, question: str, plan: str) -> str:
+        prompt = (
+            f"Based on the given schema and plans, generate a single SQLite query to answer the question.\n\n"
+            f"### SCHEMA\n{schema}\n\n"
+            f"### PLANS\n{plan}"
+            f"### QUESTION\n{question}\n\n"
+            "Let's think step by step"
+        )
+        return prompt
+    
+
+
+class SinglePlannerCoding:
+    def run_coder_on_plans(
+        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
+        llm: LLM, cfg: SamplingParams, batch_size: int,
+        output_path: Path, savename: str, evaluator_fn: Callable,
+        plan_df: pd.DataFrame,
+    ):
+        agent_coder = CoderAgent(llm, databases)
+        for model in plan_df.columns:
+            plans = plan_df[model]
+            output, labels = agent_coder.batched_generate(
+                df, cfg, batch_size, output_path, f"{model}_{savename}", evaluator_fn, plans=plans
+            )
+
+
+class MultiPlannerCoding:
+    def run_coder_on_plans(
+        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
+        llm: LLM, cfg: SamplingParams, batch_size: int,
+        output_path: Path, savename: str, evaluator_fn: Callable,
+        combined_plans: pd.Series,
+    ):
+        multiplan_agent_coder = MultiPlanCoderAgent(llm, databases)
+        output, labels = multiplan_agent_coder.batched_generate(
+            df, cfg, batch_size, output_path, savename, evaluator_fn, plans=combined_plans
+        )

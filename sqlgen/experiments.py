@@ -1,3 +1,5 @@
+from pathlib import Path
+import json
 import pandas as pd
 from vllm import LLM, SamplingParams
 from utils import load_llm, del_llm
@@ -6,7 +8,7 @@ from core.dbhandler import SQLiteDatabase
 from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.debate import MultiAgentDebate
-from sqlgen.plan import PlannerAgent, CoderAgent
+from sqlgen.plan import PlannerAgent, CoderAgent, MultiPlanCoderAgent, SinglePlannerCoding, MultiPlannerCoding
 
 
 def zeroshot_experiment(
@@ -60,8 +62,27 @@ def planner_plan_experiment(
 def planner_exec_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):
-    raise NotImplementedError
-    # TODO: load dataframe of planner responses 
+    def compile_plans() -> pd.DataFrame:
+        base_dir = Path('results/rplan')
+        data = {}
+        for model_dir in base_dir.iterdir():
+            plan_file = model_dir / 'plan_clean.json'
+            if plan_file.is_file():
+                with plan_file.open('r') as f:
+                    string_list = json.load(f)
+                data[model_dir.name] = string_list  # use the subdirectory name as column name
+        plan_df = pd.DataFrame({k: pd.Series(v) for k, v in data.items()})
+        return plan_df
+
+    def combine_best_model_plans() -> pd.Series:
+        selected_plans_df = plan_df[['deepseek_r1_qwen_32b_plan', 'qwq_32b_plan']]
+        return selected_plans_df.apply(
+            lambda row: "\n\n".join(f"# Plan {i+1}\n{row[col]}" for i, col in enumerate(selected_plans_df.columns)),
+            axis=1
+        )
+
+    plan_df = compile_plans()                      # individual plans by each reasoning model
+    combined_plans = combine_best_model_plans()    # plans by 32b R1 and QwQ models 
     llm = load_llm(args)
     cfg = SamplingParams(
         temperature=0,
@@ -69,9 +90,12 @@ def planner_exec_experiment(
         repetition_penalty=1.05,
         max_tokens=1024,
     )
-    agent_coder = CoderAgent(llm, databases)
-    outputs, labels = agent_coder.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, evaluate
+
+    SinglePlannerCoding.run_coder_on_plans(
+        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"solo_{args.EXPERIMENT}", evaluate, plan_df,
+    )
+    MultiPlannerCoding.run_coder_on_plans(
+        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", evaluate, combined_plans,
     )
 
 
