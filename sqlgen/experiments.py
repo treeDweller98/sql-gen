@@ -61,17 +61,19 @@ def planner_plan_experiment(
 
 def planner_exec_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
-):
+):  
     def compile_plans() -> pd.DataFrame:
         base_dir = Path('results/rplan')
         data = {}
         for model_dir in base_dir.iterdir():
-            plan_file = model_dir / 'plan_clean.json'
+            plan_file = model_dir / 'df_batgen_plan.json'
             if plan_file.is_file():
-                with plan_file.open('r') as f:
-                    string_list = json.load(f)
-                data[model_dir.name] = string_list  # use the subdirectory name as column name
-        plan_df = pd.DataFrame({k: pd.Series(v) for k, v in data.items()})
+                plan_df = pd.read_json(plan_file)
+                plan_df.loc[plan_df['n_out_tokens_plan'] > 8192, 'parsed_sql_plan'] = (
+                    "Plan corrupted. You will have to figure it out yourself"
+                )
+                data[model_dir.name] = plan_df['parsed_sql_plan'].to_list()
+        plan_df = pd.DataFrame(data)
         return plan_df
 
     def combine_best_model_plans() -> pd.Series:
