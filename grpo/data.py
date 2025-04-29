@@ -10,7 +10,7 @@ def make_bird_grpo_dataset(df: pd.DataFrame, databases: dict[str, SQLiteDatabase
             Creates a prompt for the question.
         """
         schema = str(databases[row.db_id])
-        question = f"Question: {row.question}  Context: {row.evidence}"
+        question = f"Question: {row.question} Context: {row.evidence}"
         system_prompt = (
             "You are a helpful SQLite coding assistant. Please answer user queries in the following format:\n\n"
             "<think>\n"
