@@ -11,7 +11,8 @@ class PlannerAgent(TextToSQL):
             "step-by-step plan on how to answer the given question. The tables, columns and operations you "
             "outline will be used by students to generate final SQLite query.\n\n"
             f"### SCHEMA\n{schema}\n\n"
-            f"### QUESTION\n{question}"
+            f"### QUESTION\n{question}\n\n"
+            f"### YOUR RESPONSE"
         )
         return prompt
     
@@ -32,8 +33,9 @@ class CoderAgent(TextToSQL):
         prompt = (
             f"Based on the given schema and plan, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
+            f"### QUESTION\n{question}\n\n"
             f"### PLAN\n{plan}\n\n"
-            f"### QUESTION\n{question}"
+            f"### YOUR RESPONSE"
             f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
@@ -48,8 +50,9 @@ class MultiPlanCoderAgent(TextToSQL):
         prompt = (
             f"Based on the given schema and plans, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
+            f"### QUESTION\n{question}\n\n"
             f"### PLANS\n{plan}\n\n"
-            f"### QUESTION\n{question}"
+            f"### YOUR RESPONSE"
             f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
