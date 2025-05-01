@@ -8,6 +8,7 @@ from core.dbhandler import SQLiteDatabase
 from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.debate import MultiAgentDebate
+from sqlgen.picker import ReasonerPickerAgent
 from sqlgen.plan import PlannerAgent, CoderAgent, MultiPlanCoderAgent
 
 
@@ -122,7 +123,59 @@ def planner_exec_experiment(
 def reasoner_picker_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):
-    raise NotImplementedError
+    def compile_zeroshot_outputs() -> dict[str, pd.Series]:
+        small_models = {}
+        mid_models = {}
+        large_models = {}
+        
+        matched_dirs = [
+            d for d in Path('results/zs').iterdir() 
+            if d.is_dir() and any(d.name.startswith(prefix) 
+            for prefix in ['gemma3', 'qwen25', 'qwen25_coder'])
+        ]
+        for model_dir in matched_dirs:
+            dirname = str(model_dir.name)
+            responses_file = model_dir / 'zs_raw.json'
+            if responses_file.is_file():
+                with responses_file.open('r') as f:
+                    responses = json.load(f)         
+        
+                if "_4b_" in dirname or '_7b_' in dirname:
+                    small_models[dirname] = responses
+                elif "_14b_" in dirname or '_12b_' in dirname:
+                    mid_models[dirname] = responses
+                elif "_32b_" in dirname or '_27b_' in dirname:
+                    large_models[dirname] = responses
+
+        def combine_zs_responses(model_responses_dict) -> pd.Series:
+            df = pd.DataFrame.from_dict(model_responses_dict)
+            return df.apply(
+                lambda row: "\n\n".join(f"###### Candidate {i+1}\n{row[col].replace('### ', '')}" for i, col in enumerate(df.columns)),
+                axis=1
+            )
+        
+        return {
+            'small': combine_zs_responses(small_models),
+            'mid':   combine_zs_responses(mid_models),
+            'large': combine_zs_responses(large_models),
+        }
+        
+    responses = compile_zeroshot_outputs()
+    llm = load_llm(args)
+    cfg = SamplingParams(
+        temperature=0.6,
+        top_p=0.95,
+        top_k=30,
+        repetition_penalty=1.0,
+        max_tokens=4096*2,
+    )
+
+    agent_pick = ReasonerPickerAgent(llm, databases)
+    for size, coder_outputs in responses.items():
+        _, _ = agent_pick.batched_generate(
+            df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"{size}_{args.EXPERIMENT}", 
+            evaluate, coder_outputs=coder_outputs
+        )
 
 
 def discuss_experiment(
