@@ -33,7 +33,7 @@ class CoderAgent(TextToSQL):
             f"Based on the given schema and plan, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### PLAN\n{plan}\n\n"
-            f"### QUESTION\n{question}\n\n"
+            f"### QUESTION\n{question}"
             f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
@@ -48,8 +48,8 @@ class MultiPlanCoderAgent(TextToSQL):
         prompt = (
             f"Based on the given schema and plans, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
-            f"### PLANS\n{plan}"
-            f"### QUESTION\n{question}\n\n"
+            f"### PLANS\n{plan}\n\n"
+            f"### QUESTION\n{question}"
             f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
