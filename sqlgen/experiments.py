@@ -79,7 +79,7 @@ def planner_exec_experiment(
     def combine_best_model_plans() -> pd.Series:
         selected_plans_df = plan_df[['deepseek_r1_qwen_32b_plan', 'qwq_32b_plan']]
         return selected_plans_df.apply(
-            lambda row: "\n\n".join(f"# Plan {i+1}\n{row[col]}" for i, col in enumerate(selected_plans_df.columns)),
+            lambda row: "\n\n".join(f"###### Plan {i+1}\n{row[col].replace('### ', '')}" for i, col in enumerate(selected_plans_df.columns)),
             axis=1
         )
 
