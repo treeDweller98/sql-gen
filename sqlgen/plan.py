@@ -1,9 +1,5 @@
-from typing import Callable
 import re
-from pathlib import Path
 import pandas as pd
-from vllm import LLM, SamplingParams
-from core.dbhandler import SQLiteDatabase
 from core.base_agent import TextToSQL
 
 
@@ -57,32 +53,3 @@ class MultiPlanCoderAgent(TextToSQL):
             f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
-    
-
-
-class SinglePlannerCoding:
-    def run_coder_on_plans(
-        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-        llm: LLM, cfg: SamplingParams, batch_size: int,
-        output_path: Path, savename: str, evaluator_fn: Callable,
-        plan_df: pd.DataFrame, enable_zscot: bool,
-    ):
-        agent_coder = CoderAgent(llm, databases)
-        for model in plan_df.columns:
-            plans = plan_df[model]
-            output, labels = agent_coder.batched_generate(
-                df, cfg, batch_size, output_path, f"{model}_{savename}", evaluator_fn, plans=plans, enable_zscot=enable_zscot,
-            )
-
-
-class MultiPlannerCoding:
-    def run_coder_on_plans(
-        df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
-        llm: LLM, cfg: SamplingParams, batch_size: int,
-        output_path: Path, savename: str, evaluator_fn: Callable,
-        combined_plans: pd.Series, enable_zscot: bool,
-    ):
-        multiplan_agent_coder = MultiPlanCoderAgent(llm, databases)
-        output, labels = multiplan_agent_coder.batched_generate(
-            df, cfg, batch_size, output_path, savename, evaluator_fn, plans=combined_plans, enable_zscot=enable_zscot,
-        )
