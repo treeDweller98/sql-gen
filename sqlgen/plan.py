@@ -28,33 +28,33 @@ class PlannerAgent(TextToSQL):
 
 
 class CoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple:
         schema, question = super().process_bird_df(idx, row)
-        return schema, question, plans[idx]
+        return schema, question, plans[idx], enable_zscot
     
-    def generate_prompt(self, schema: str, question: str, plan: str) -> str:
+    def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:
         prompt = (
             f"Based on the given schema and plan, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### PLAN\n{plan}\n\n"
             f"### QUESTION\n{question}\n\n"
-            "Let's think step by step"
+            f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
     
     
 class MultiPlanCoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple:
         schema, question = super().process_bird_df(idx, row)
-        return schema, question, plans[idx]
+        return schema, question, plans[idx], enable_zscot
     
-    def generate_prompt(self, schema: str, question: str, plan: str) -> str:
+    def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:
         prompt = (
             f"Based on the given schema and plans, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### PLANS\n{plan}"
             f"### QUESTION\n{question}\n\n"
-            "Let's think step by step"
+            f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
         )
         return prompt
     
@@ -65,13 +65,13 @@ class SinglePlannerCoding:
         df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
         llm: LLM, cfg: SamplingParams, batch_size: int,
         output_path: Path, savename: str, evaluator_fn: Callable,
-        plan_df: pd.DataFrame,
+        plan_df: pd.DataFrame, enable_zscot: bool,
     ):
         agent_coder = CoderAgent(llm, databases)
         for model in plan_df.columns:
             plans = plan_df[model]
             output, labels = agent_coder.batched_generate(
-                df, cfg, batch_size, output_path, f"{model}_{savename}", evaluator_fn, plans=plans
+                df, cfg, batch_size, output_path, f"{model}_{savename}", evaluator_fn, plans=plans, enable_zscot=enable_zscot,
             )
 
 
@@ -80,9 +80,9 @@ class MultiPlannerCoding:
         df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
         llm: LLM, cfg: SamplingParams, batch_size: int,
         output_path: Path, savename: str, evaluator_fn: Callable,
-        combined_plans: pd.Series,
+        combined_plans: pd.Series, enable_zscot: bool,
     ):
         multiplan_agent_coder = MultiPlanCoderAgent(llm, databases)
         output, labels = multiplan_agent_coder.batched_generate(
-            df, cfg, batch_size, output_path, savename, evaluator_fn, plans=combined_plans
+            df, cfg, batch_size, output_path, savename, evaluator_fn, plans=combined_plans, enable_zscot=enable_zscot,
         )

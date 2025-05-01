@@ -86,18 +86,30 @@ def planner_exec_experiment(
     plan_df = compile_plans()                      # individual plans by each reasoning model
     combined_plans = combine_best_model_plans()    # plans by 32b R1 and QwQ models 
     llm = load_llm(args)
-    cfg = SamplingParams(
-        temperature=0,
-        top_p=1,
-        repetition_penalty=1.05,
-        max_tokens=1024,
-    )
+
+    if 'r1' in args.MODEL.value.lower() or 'qwq' in args.MODEL.value.lower():
+        enable_zscot = False
+        cfg = SamplingParams(
+            temperature=0.6,
+            top_p=0.95,
+            top_k=30,
+            repetition_penalty=1.0,
+            max_tokens=4096*2,
+        )
+    else:
+        enable_zscot = True
+        cfg = SamplingParams(
+            temperature=0,
+            top_p=1,
+            repetition_penalty=1.05,
+            max_tokens=1024,
+        )
 
     SinglePlannerCoding.run_coder_on_plans(
-        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"solo_{args.EXPERIMENT}", evaluate, plan_df,
+        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"solo_{args.EXPERIMENT}", evaluate, plan_df, enable_zscot,
     )
     MultiPlannerCoding.run_coder_on_plans(
-        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", evaluate, combined_plans,
+        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", evaluate, combined_plans, enable_zscot,
     )
 
 
