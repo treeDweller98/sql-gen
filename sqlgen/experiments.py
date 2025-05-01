@@ -8,7 +8,7 @@ from core.dbhandler import SQLiteDatabase
 from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
 from sqlgen.debate import MultiAgentDebate
-from sqlgen.plan import PlannerAgent, CoderAgent, MultiPlanCoderAgent, SinglePlannerCoding, MultiPlannerCoding
+from sqlgen.plan import PlannerAgent, CoderAgent, MultiPlanCoderAgent
 
 
 def zeroshot_experiment(
@@ -105,12 +105,24 @@ def planner_exec_experiment(
             max_tokens=1024,
         )
 
-    SinglePlannerCoding.run_coder_on_plans(
-        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"solo_{args.EXPERIMENT}", evaluate, plan_df, enable_zscot,
+    plan_exec_agent = CoderAgent(llm, databases)
+    for model in plan_df.columns:
+        _, _ = plan_exec_agent.batched_generate(
+            df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"{model}_solo_{args.EXPERIMENT}",
+            evaluate, plans=plan_df[model], enable_zscot=enable_zscot,
+        )
+
+    multiplan_exec_agent = MultiPlanCoderAgent(llm, databases)
+    _, _ = multiplan_exec_agent.batched_generate(
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", 
+        evaluate, plans=combined_plans, enable_zscot=enable_zscot,
     )
-    MultiPlannerCoding.run_coder_on_plans(
-        df, databases, llm, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", evaluate, combined_plans, enable_zscot,
-    )
+
+
+def reasoner_picker_experiment(
+    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
+):
+    raise NotImplementedError
 
 
 def discuss_experiment(
@@ -155,8 +167,3 @@ def debate_experiment(
         savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
-
-def reasoner_picker_experiment(
-    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
-):
-    raise NotImplementedError
