@@ -36,7 +36,7 @@ class CoderAgent(TextToSQL):
             f"### QUESTION\n{question}\n\n"
             f"### PLAN\n{plan}\n\n"
             f"### YOUR RESPONSE"
-            f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
+            f"""{"\n\nLet's think step by step" if enable_zscot else ''}"""
         )
         return prompt
     
@@ -53,6 +53,6 @@ class MultiPlanCoderAgent(TextToSQL):
             f"### QUESTION\n{question}\n\n"
             f"### PLANS\n{plan}\n\n"
             f"### YOUR RESPONSE"
-            f"{'\n\nLet\'s think step by step' if enable_zscot else ''}"
+            f"""{"\n\nLet's think step by step" if enable_zscot else ''}"""
         )
         return prompt
