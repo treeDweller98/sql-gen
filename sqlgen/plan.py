@@ -30,13 +30,14 @@ class CoderAgent(TextToSQL):
         return schema, question, plans[idx], enable_zscot
     
     def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:
+        cot = "\n\nLet's think step by step" if enable_zscot else '' 
         prompt = (
             f"Based on the given schema and plan, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### PLAN\n{plan}\n\n"
             f"### YOUR RESPONSE"
-            f"""{"\n\nLet's think step by step" if enable_zscot else ''}"""
+            f"{cot}"
         )
         return prompt
     
@@ -47,12 +48,13 @@ class MultiPlanCoderAgent(TextToSQL):
         return schema, question, plans[idx], enable_zscot
     
     def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:
+        cot = "\n\nLet's think step by step" if enable_zscot else '' 
         prompt = (
             f"Based on the given schema and plans, generate a single SQLite query to answer the question.\n\n"
             f"### SCHEMA\n{schema}\n\n"
             f"### QUESTION\n{question}\n\n"
             f"### PLANS\n{plan}\n\n"
             f"### YOUR RESPONSE"
-            f"""{"\n\nLet's think step by step" if enable_zscot else ''}"""
+            f"{cot}"
         )
         return prompt
