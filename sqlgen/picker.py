@@ -3,7 +3,7 @@ from core.base_agent import TextToSQL
 
 
 class ReasonerPickerAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, coder_outputs: pd.Series) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, coder_outputs: pd.Series) -> tuple[str, str, str]:
         schema, question = super().process_bird_df(idx, row)
         return schema, question, coder_outputs[idx]
 

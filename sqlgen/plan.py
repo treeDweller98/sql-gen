@@ -25,7 +25,7 @@ class PlannerAgent(TextToSQL):
 
 
 class CoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
         schema, question = super().process_bird_df(idx, row)
         return schema, question, plans[idx], enable_zscot
     
@@ -43,7 +43,7 @@ class CoderAgent(TextToSQL):
     
     
 class MultiPlanCoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple:
+    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
         schema, question = super().process_bird_df(idx, row)
         return schema, question, plans[idx], enable_zscot
     
