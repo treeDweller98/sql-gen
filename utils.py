@@ -22,6 +22,9 @@ class SupoortedModels(Enum):
     llama3_8b_instruct = "meta-llama/Meta-Llama-3-8B-Instruct"
     llama31_8b_instruct = "meta-llama/Llama-3.1-8B-Instruct"
 
+    ministral_8b_instruct = "mistralai/Ministral-8B-Instruct-2410"
+    mistral_small_24b_instruct = "mistralai/Mistral-Small-3.1-24B-Instruct-2503"
+    
     codegemma_7b_it = "google/codegemma-7b-it"
     
     gemma3_4b_it  = "google/gemma-3-4b-it"
