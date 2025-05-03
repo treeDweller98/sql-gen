@@ -19,6 +19,9 @@ class SupoortedModels(Enum):
     codellama_13b_instruct = "codellama/CodeLlama-13b-Instruct-hf"
     codellama_34b_instruct = "codellama/CodeLlama-34b-Instruct-hf"
 
+    llama3_8b_instruct = "meta-llama/Meta-Llama-3-8B-Instruct"
+    llama31_8b_instruct = "meta-llama/Llama-3.1-8B-Instruct"
+
     codegemma_7b_it = "google/codegemma-7b-it"
     
     gemma3_4b_it  = "google/gemma-3-4b-it"
