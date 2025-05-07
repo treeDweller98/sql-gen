@@ -90,10 +90,13 @@ class TextToSQL(ABC):
         """ Takes a question and a schema to generate the agent's SQL generation prompt """
         raise NotImplementedError
     
-    def generate_text(self, prompts: list[str], cfg: SamplingParams, use_tqdm: bool = False) -> TextToSQLGenerationOutput:
-        messages = [[{'role':'user', 'content': prompt}] for prompt in prompts]
-        outputs = self.llm.chat(messages, sampling_params=cfg, use_tqdm=use_tqdm)
+    def generate_text(self, prompts: list[str] | list[list[dict]], cfg: SamplingParams, use_tqdm: bool = False) -> TextToSQLGenerationOutput:
+        if all(isinstance(item, str) for item in prompts):
+            messages = [[{'role':'user', 'content': prompt}] for prompt in prompts]
+        elif all(isinstance(item, list) and all(isinstance(subitem, dict) for subitem in item) for item in prompts):
+            messages = prompts
 
+        outputs = self.llm.chat(messages, sampling_params=cfg, use_tqdm=use_tqdm)
         input_prompts: list[str] = [output.prompt for output in outputs]
         raw_responses: list[str] = [output.outputs[0].text for output in outputs]
         parsed_sql:    list[str] = [self.parse_with_regex(response) for response in raw_responses]
