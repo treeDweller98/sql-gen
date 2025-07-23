@@ -1,5 +1,5 @@
 import datetime
-from utils import read_dataset, parse_args
+from utils import read_bird_dataset, read_spider_dataset, parse_args
 from sqlgen.experiments import (
     zeroshot_experiment,
     reasoner_zeroshot_experiment,
@@ -9,7 +9,6 @@ from sqlgen.experiments import (
     planner_plan_experiment,
     planner_exec_experiment,
 )
-from grpo.train import train_grpo
 
 
 if __name__ == '__main__':
@@ -18,8 +17,9 @@ if __name__ == '__main__':
     # Create Output Directory
     args.OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
     # Read Dataset
+    read_dataset = read_spider_dataset if args.DATASET == 'spider' else read_bird_dataset
     df, databases = read_dataset(
-        args.INPUT_PATH, args.BIRD_QUESTION_FILENAME, args.DB_FOLDERNAME, 
+        args.INPUT_PATH, args.QUESTION_FILENAME, args.DB_FOLDERNAME, 
         args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT, args.IS_DEBUG,
     )
 
@@ -41,8 +41,6 @@ if __name__ == '__main__':
             planner_plan_experiment(args, df, databases)
         case 'plan-exec':
             planner_exec_experiment(args, df, databases)
-        case 'grpo':
-            train_grpo(args, df, databases)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
 

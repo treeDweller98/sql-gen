@@ -98,19 +98,22 @@ def del_llm(llm: LLM) -> None:
     print("Successfully delete the llm pipeline and free the GPU memory.")
 
 
-### BIRD Dataset Reader Function ###
-def read_dataset(
-    input_path: Path, bird_question_filename: str, db_foldername: str, 
+### Dataset Reader Functions ###
+def read_bird_dataset(
+    input_path: Path, question_filename: str, db_foldername: str, 
     use_cached_schema: bool, db_exec_timeout: float, is_debug: bool = False,
 ) -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
     """ BIRD dataset reader function.
-        1. Reads dataset into DataFrame from "input_path/bird_question_filename".
+        1. Reads dataset into DataFrame from "input_path/question_filename".
         2. Lists database names from folders in "input_path/db_foldername/".
         3. Creates dict of SQLiteDatabases, indexed by db_name.
         Returns DataFrame of BIRD questions and dict of databases.
     """
-    df = pd.read_json(input_path / bird_question_filename)
+    df = pd.read_json(input_path / question_filename)
     df.rename(columns={'SQL': 'gold_sql'}, inplace=True)
+    df['question'] = df.apply(
+        lambda row: f"{row['question']}  Note: {row['evidence']}", axis=1,
+    )
     db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir() if f.is_dir()]
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
@@ -122,6 +125,26 @@ def read_dataset(
     return df, databases
 
 
+def read_spider_dataset(
+    input_path: Path, question_filename: str, db_foldername: str, 
+    use_cached_schema: bool, db_exec_timeout: float, is_debug: bool = False,     
+):
+    df = pd.read_json(input_path / question_filename)
+    df.rename(columns={'query': 'gold_sql'}, inplace=True)
+    df['question_id'] = range(len(df))
+    db_names: list[str] = [f.name for f in (input_path / db_foldername).iterdir() if f.is_dir()]
+    databases: dict[str, SQLiteDatabase] = {
+        db_id: SQLiteDatabase(db_id, (input_path / db_foldername), db_exec_timeout, use_cached_schema) 
+        for db_id in db_names
+    }
+    if is_debug:
+        df = df.head().reset_index()
+    print(f'\n\n{db_names=}\n{len(df)=}\n\n')
+    return df, databases
+
+
+
+### ARG PARSER
 def parse_args():
     parser = argparse.ArgumentParser(description="Configuration for Experiment.")
     
@@ -178,16 +201,20 @@ def parse_args():
 
     # Input and Output Path
     parser.add_argument(
+        '--DATASET', type=str, default='bird',
+        help="Dataset: 'spider' or 'bird'."
+    )
+    parser.add_argument(
         '--INPUT_PATH', type=str, default='data/bird-minidev',
-        help="Input path for the experiment data."
+        help="Directory for the experiment data."
     )
     parser.add_argument(
         '--OUTPUT_PATH', type=str, default='results/{model}_{experiment}/', 
         help="Output path for the experiment results."
     )
     parser.add_argument(
-        '--BIRD_QUESTION_FILENAME', type=str, default='dev.json', 
-        help="Filename for bird question data in input_path/"
+        '--QUESTION_FILENAME', type=str, default='dev.json', 
+        help="Question file in input_path/"
     )
     parser.add_argument(
         '--DB_FOLDERNAME', type=str, default='dev_databases', 
@@ -205,7 +232,7 @@ def parse_args():
     # Experiment to run
     parser.add_argument(
         '--EXPERIMENT', type=str,
-        help="Experiment: zs, rzs, mad, madb ,grpo"
+        help="Experiment: zs, rzs, mad, madb, pick, plan, plan-exec"
     )
     parser.add_argument(
         '--IS_DEBUG', action='store_true',
@@ -235,7 +262,7 @@ def parse_args():
     print(f"Input Path: {args.INPUT_PATH}")
     print(f"Output Path: {args.OUTPUT_PATH}")
     print(f"Databases Folder Name: {args.DB_FOLDERNAME}")
-    print(f"Bird Question Filename: {args.BIRD_QUESTION_FILENAME}")
+    print(f"Question Filename: {args.QUESTION_FILENAME}")
     print(f"DB Exec Timeout: {args.DB_EXEC_TIMEOUT}")
     print(f"Use Cached Schema: {args.USE_CACHED_SCHEMA}")
     print(f"Batch Size: {args.BATCH_SIZE}")
@@ -245,9 +272,9 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    df, databases = read_dataset(
+    df, databases = read_bird_dataset(
         input_path=args.INPUT_PATH,
-        bird_question_filename=args.BIRD_QUESTION_FILENAME,
+        question_filename=args.QUESTION_FILENAME,
         db_foldername=args.DB_FOLDERNAME,
         use_cached_schema=args.USE_CACHED_SCHEMA,
         db_exec_timeout=args.DB_EXEC_TIMEOUT,
@@ -266,11 +293,32 @@ if __name__ == '__main__':
 #     --ENABLE_PREFIX_CACHING \
 #     --SEED 42 \
 #     --BATCH_SIZE 128 \
+#     --DATASET "bird"
 #     --INPUT_PATH "data/bird-minidev" \
-#     --OUTPUT_PATH "results/rzs/{model}_{experiment}/" \
-#     --BIRD_QUESTION_FILENAME "dev.json" \
+#     --OUTPUT_PATH "results_bird/rzs/{model}_{experiment}/" \
+#     --QUESTION_FILENAME "dev.json" \
 #     --DB_FOLDERNAME "dev_databases" \
 #     --DB_EXEC_TIMEOUT 30
 #     --IS_DEBUG
 #     --DISTRIBUTED_EXECUTOR_BACKEND 'ray'
 #     --USE_CACHED_SCHEMA
+
+# python utils.py \
+#     --EXPERIMENT "mad" \
+#     --MODEL qwen25_coder_14b_instruct \
+#     --GPU_MEMORY_UTILIZATION 0.97 \
+#     --TENSOR_PARALLEL_SIZE 2 \
+#     --MAX_MODEL_LEN 8192 \
+#     --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
+#     --KV_CACHE_DTYPE "auto" \
+#     --VLLM_DTYPE "auto" \
+#     --ENFORCE_EAGER \
+#     --ENABLE_PREFIX_CACHING \
+#     --SEED 42 \
+#     --BATCH_SIZE 128 \
+#     --DATASET "spider"
+#     --INPUT_PATH "data/spider_data" \
+#     --OUTPUT_PATH "results_spider/mad/{model}_{experiment}/" \
+#     --BIRD_QUESTION_FILENAME "dev.json" \
+#     --DB_FOLDERNAME "databases" \
+#     --DB_EXEC_TIMEOUT 30

@@ -13,8 +13,8 @@ class ZeroShotStarter(TextToSQL):
         'thinker': "who does not hesistate to dig deep into a problem and explore several approaches before settling on a solution"
     }
 
-    def process_bird_df(self, idx: int, row: pd.DataFrame, persona: Literal['simple', 'technical', 'thinker']) -> tuple:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, persona: Literal['simple', 'technical', 'thinker']) -> tuple:
+        schema, question = super().process_question(idx, row)
         return schema, question, self.personas[persona]
 
     def generate_prompt(self, schema: str, question: str, persona: str) -> str:
@@ -30,8 +30,8 @@ class ZeroShotStarter(TextToSQL):
 
 class DiscussionAgent(TextToSQL):
     # TODO: Add personas to DiscussionAgent
-    def process_bird_df(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple[str, str, dict[int, str]]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple[str, str, dict[int, str]]:
+        schema, question = super().process_question(idx, row)
         return schema, question, agent_responses[idx]
     
     def generate_prompt(self, schema: str, question: str, agent_responses: dict[int, str]) -> str:
@@ -52,8 +52,8 @@ class DiscussionAgent(TextToSQL):
     
 
 class DiscussionJudge(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple:
+        schema, question = super().process_question(idx, row)
         return schema, question, agent_responses[idx]
     
     def generate_prompt(self, schema: str, question: str, agent_responses: dict[int, str]) -> str:

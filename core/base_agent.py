@@ -76,14 +76,14 @@ class TextToSQL(ABC):
         self.llm = llm
         self.databases = databases
 
-    def process_bird_df(self, idx: int, row: pd.DataFrame, **kwargs) -> tuple:
-        """ Takes a row of a DataFrame of BIRD Bench questions. 
+    def process_question(self, idx: int, row: pd.DataFrame, **kwargs) -> tuple:
+        """ Takes a row of a DataFrame of dataset questions. 
             Processes and returns necessary columns required by this Agent's generate_response(). 
             Output tuple must be unpackable as parameters to generate_response().
         """
         db = self.databases[ row['db_id'] ]
         schema = str(db)
-        question = f"{row['question']}  Evidence: {row['evidence']}"
+        question = row['question']
         return schema, question
 
     def generate_prompt(self, schema: str, question: str, **kwargs) -> str:
@@ -123,7 +123,7 @@ class TextToSQL(ABC):
         """ Generates SQL from a DataFrame of BIRD questions. 
             Evaluates performance using evaluator_fn.
             Saves responses with savename as suffix in output_dir.
-            Kwargs passed on to process_bird_df().
+            Kwargs passed on to process_question().
             Returns TextGenerationOutput, along with labels if evaluate_fn given
         """
         start_time = datetime.datetime.now()
@@ -136,7 +136,7 @@ class TextToSQL(ABC):
         for i, batch in enumerate(tqdm(batched(df, batch_size), desc=f'{savename} Generating SQL')):
             # Generate
             prompts: list[str] = [
-                self.generate_prompt(*self.process_bird_df(idx, row, **kwargs))
+                self.generate_prompt(*self.process_question(idx, row, **kwargs))
                 for idx, row in batch.iterrows()
             ]
             outputs = self.generate_text(prompts, cfg, use_tqdm=False)

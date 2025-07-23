@@ -8,8 +8,8 @@ from sqlgen.zeroshot import ZeroShotAgent
 
 
 class ProponentAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, solution: list[str], rebuttal: list[str]) -> tuple[str, str, str, str]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, solution: list[str], rebuttal: list[str]) -> tuple[str, str, str, str]:
+        schema, question = super().process_question(idx, row)
         return schema, question, solution[idx], rebuttal[idx]
     
     def generate_prompt(self, schema: str, question: str, solution: str, rebuttal: str) -> str:
@@ -27,8 +27,8 @@ class ProponentAgent(TextToSQL):
     
 
 class OpponentAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, solution: list[str], rebuttal: list[str]) -> tuple[str, str, str, str]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, solution: list[str], rebuttal: list[str]) -> tuple[str, str, str, str]:
+        schema, question = super().process_question(idx, row)
         return schema, question, solution[idx], rebuttal[idx]
     
     def generate_prompt(self, schema: str, question: str, solution: str) -> str:
@@ -45,8 +45,8 @@ class OpponentAgent(TextToSQL):
 
 
 class JudgeAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple[str, str, dict[int, str]]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, agent_responses: list[dict[int, str]]) -> tuple[str, str, dict[int, str]]:
+        schema, question = super().process_question(idx, row)
         return schema, question, agent_responses[idx]
     
     def generate_prompt(self, schema: str, question: str, affirmative: str, negative: str) -> str:

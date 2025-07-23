@@ -25,8 +25,8 @@ class PlannerAgent(TextToSQL):
 
 
 class CoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
+        schema, question = super().process_question(idx, row)
         return schema, question, plans[idx], enable_zscot
     
     def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:
@@ -43,8 +43,8 @@ class CoderAgent(TextToSQL):
     
     
 class MultiPlanCoderAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, plans: pd.Series, enable_zscot: bool = True) -> tuple[str, str, str, bool]:
+        schema, question = super().process_question(idx, row)
         return schema, question, plans[idx], enable_zscot
     
     def generate_prompt(self, schema: str, question: str, plan: str, enable_zscot: bool) -> str:

@@ -3,8 +3,8 @@ from core.base_agent import TextToSQL
 
 
 class ReasonerPickerAgent(TextToSQL):
-    def process_bird_df(self, idx: int, row: pd.DataFrame, coder_outputs: pd.Series) -> tuple[str, str, str]:
-        schema, question = super().process_bird_df(idx, row)
+    def process_question(self, idx: int, row: pd.DataFrame, coder_outputs: pd.Series) -> tuple[str, str, str]:
+        schema, question = super().process_question(idx, row)
         return schema, question, coder_outputs[idx]
 
     def generate_prompt(self, schema: str, question: str, coder_outputs: str) -> str:
