@@ -7,4 +7,5 @@ core/__pycache__
 /data
 /results
 /jobs
+/wandb
 secrets.env
