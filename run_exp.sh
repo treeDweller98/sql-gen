@@ -1,9 +1,10 @@
+source secrets.env
+
 experiment="zs"     # zs, rzs, mad, pick, plan, plan-exec
 dataset="spider"    # spider, bird
 seed=42             # 42, 118, 98
 tensor_parallel=2
 
-# TODO: export wandb API token in terminal
 
 zs_models=(
     "qwen25_7b_instruct"
@@ -46,17 +47,19 @@ else
 fi
 
 if [ "$dataset" == "spider" ]; then
-    input_path="data/spider_data"
-    db_foldername="dev_databases"
+    input_dir="data/spider_data"
+    db_foldername="database"
     question_filename="dev.json"
 else
-    input_path="data/bird_minidev"
-    db_foldername="databases"
+    input_dir="data/bird_minidev"
+    db_foldername="dev_databases"
     question_filename="dev.json"
 fi
 
 
 for model in "${models[@]}"; do
+    output_dir="results_${dataset}/${experiment}/${model}_${experiment}/"
+    mkdir -p "$output_dir"
     python main.py \
         --EXPERIMENT "$experiment" \
         --MODEL "$model" \
@@ -71,9 +74,10 @@ for model in "${models[@]}"; do
         --SEED "$seed" \
         --BATCH_SIZE "256" \
         --DATASET "$dataset" \
-        --INPUT_PATH "$input_path" \
-        --OUTPUT_PATH "results_${dataset}/${experiment}/${model}_${experiment}/" \
+        --INPUT_DIR "$input_dir" \
+        --OUTPUT_DIR "$output_dir" \
         --QUESTION_FILENAME "$question_filename" \
         --DB_FOLDERNAME "$db_foldername" \
-        --DB_EXEC_TIMEOUT "30"
+        --DB_EXEC_TIMEOUT "30" \
+        > "${output_dir}/log.out" 2> "${output_dir}/log.err"
 done
