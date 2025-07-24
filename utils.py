@@ -31,10 +31,6 @@ class SupoortedModels(Enum):
     gemma3_12b_it = "google/gemma-3-12b-it"
     gemma3_27b_it = "google/gemma-3-27b-it"
 
-    qwen25_1_5b = "Qwen/Qwen2.5-1.5B"
-    qwen25_3b = "Qwen/Qwen2.5-3B"
-    qwen25_7b = "Qwen/Qwen2.5-7B"
-
     qwen25_1_5b_instruct = "Qwen/Qwen2.5-1.5B-Instruct"
     qwen25_3b_instruct = "Qwen/Qwen2.5-3B-Instruct"
     qwen25_7b_instruct = "Qwen/Qwen2.5-7B-Instruct"
@@ -242,7 +238,7 @@ def parse_args():
     args = parser.parse_args()
     args.MODEL = SupoortedModels[args.MODEL]
     args.INPUT_PATH = Path(args.INPUT_PATH)
-    args.OUTPUT_PATH = Path(args.OUTPUT_PATH.format(model=args.MODEL.name, experiment=args.EXPERIMENT))
+    args.OUTPUT_PATH = Path(args.OUTPUT_PATH)
 
     # Print the configurations to confirm
     print(f"Experiment: {args.EXPERIMENT}")
@@ -319,6 +315,6 @@ if __name__ == '__main__':
 #     --DATASET "spider"
 #     --INPUT_PATH "data/spider_data" \
 #     --OUTPUT_PATH "results_spider/mad/{model}_{experiment}/" \
-#     --BIRD_QUESTION_FILENAME "dev.json" \
+#     --QUESTION_FILENAME "dev.json" \
 #     --DB_FOLDERNAME "databases" \
 #     --DB_EXEC_TIMEOUT 30
