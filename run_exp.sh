@@ -68,7 +68,7 @@ for model in "${models[@]}"; do
         --GPU_MEMORY_UTILIZATION "0.97" \
         --TENSOR_PARALLEL_SIZE "$tensor_parallel" \
         --MAX_MODEL_LEN "8192" \
-        --DISTRIBUTED_EXECUTOR_BACKEND 'mp' \
+        --DISTRIBUTED_EXECUTOR_BACKEND "mp" \
         --KV_CACHE_DTYPE "auto" \
         --VLLM_DTYPE "auto" \
         --ENFORCE_EAGER \
@@ -81,5 +81,5 @@ for model in "${models[@]}"; do
         --QUESTION_FILENAME "$question_filename" \
         --DB_FOLDERNAME "$db_foldername" \
         --DB_EXEC_TIMEOUT "30" \
-        > "${output_dir}/log.out" 2> "${output_dir}/log.err"
+        > >(tee "${output_dir}/log.out") 2> >(tee "${output_dir}/log.err" >&2)
 done
