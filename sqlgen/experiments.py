@@ -1,4 +1,4 @@
--from pathlib import Path
+from pathlib import Path
 import json
 import pandas as pd
 from vllm import LLM, SamplingParams
@@ -7,7 +7,6 @@ from core.birdeval import evaluate
 from core.dbhandler import SQLiteDatabase
 from sqlgen.zeroshot import ZeroShotAgent, ReasonerZeroShot
 from sqlgen.discussion import MultiAgentDiscussion
-from sqlgen.debate import MultiAgentDebate
 from sqlgen.picker import ReasonerPickerAgent
 from sqlgen.plan import PlannerAgent, CoderAgent, MultiPlanCoderAgent
 
@@ -189,28 +188,6 @@ def discuss_experiment(
         max_tokens=1024*2,
     )
     MultiAgentDiscussion.discuss(
-        df=df, 
-        databases=databases, 
-        llm=llm,
-        cfg=cfg,
-        batch_size=args.BATCH_SIZE,
-        output_path=args.OUTPUT_PATH, 
-        savename=args.EXPERIMENT, 
-        evaluator_fn=evaluate, 
-    )
-
-
-def debate_experiment(
-    args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
-):
-    llm = load_llm(args)
-    cfg = SamplingParams(
-        temperature=0,
-        top_p=1,
-        repetition_penalty=1.05,
-        max_tokens=1024*2,
-    )
-    MultiAgentDebate.debate(
         df=df, 
         databases=databases, 
         llm=llm,
