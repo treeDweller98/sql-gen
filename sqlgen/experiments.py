@@ -23,7 +23,7 @@ def zeroshot_experiment(
     )
     agent_zs = ZeroShotAgent(llm, databases)
     outputs, labels = agent_zs.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, evaluate
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, evaluate
     )
 
 def reasoner_zeroshot_experiment(
@@ -39,7 +39,7 @@ def reasoner_zeroshot_experiment(
     )
     agent_rzs = ReasonerZeroShot(llm, databases)
     outputs, labels = agent_rzs.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, evaluate
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, evaluate
     )
 
 
@@ -56,7 +56,7 @@ def planner_plan_experiment(
     )
     agent_plan = PlannerAgent(llm, databases)
     outputs, labels = agent_plan.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, args.EXPERIMENT, None
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, None
     )
 
 def planner_exec_experiment(
@@ -108,13 +108,13 @@ def planner_exec_experiment(
     plan_exec_agent = CoderAgent(llm, databases)
     for model in plan_df.columns:
         _, _ = plan_exec_agent.batched_generate(
-            df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"{model}_solo_{args.EXPERIMENT}",
+            df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, f"{model}_solo_{args.EXPERIMENT}",
             evaluate, plans=plan_df[model], enable_zscot=enable_zscot,
         )
 
     multiplan_exec_agent = MultiPlanCoderAgent(llm, databases)
     _, _ = multiplan_exec_agent.batched_generate(
-        df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"multi_{args.EXPERIMENT}", 
+        df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, f"multi_{args.EXPERIMENT}", 
         evaluate, plans=combined_plans, enable_zscot=enable_zscot,
     )
 
@@ -172,7 +172,7 @@ def reasoner_picker_experiment(
     agent_pick = ReasonerPickerAgent(llm, databases)
     for size, coder_outputs in responses.items():
         _, _ = agent_pick.batched_generate(
-            df, cfg, args.BATCH_SIZE, args.OUTPUT_PATH, f"{size}_{args.EXPERIMENT}", 
+            df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, f"{size}_{args.EXPERIMENT}", 
             evaluate, coder_outputs=coder_outputs
         )
 
@@ -193,7 +193,7 @@ def discuss_experiment(
         llm=llm,
         cfg=cfg,
         batch_size=args.BATCH_SIZE,
-        output_path=args.OUTPUT_PATH, 
+        output_dir=args.OUTPUT_DIR, 
         savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )

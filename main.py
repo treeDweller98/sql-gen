@@ -15,11 +15,11 @@ if __name__ == '__main__':
     # Parse Arguments
     args = parse_args()
     # Create Output Directory
-    args.OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+    args.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     # Read Dataset
     read_dataset = read_spider_dataset if args.DATASET == 'spider' else read_bird_dataset
     df, databases = read_dataset(
-        args.INPUT_PATH, args.QUESTION_FILENAME, args.DB_FOLDERNAME, 
+        args.INPUT_DIR, args.QUESTION_FILENAME, args.DB_FOLDERNAME, 
         args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT, args.IS_DEBUG,
     )
     wandb.init(

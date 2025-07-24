@@ -79,7 +79,7 @@ class MultiAgentDiscussion:
     def discuss(
         df: pd.DataFrame, databases: dict[str, SQLiteDatabase], 
         llm: LLM, cfg: SamplingParams, batch_size: int,
-        output_path: Path, savename: str, evaluator_fn: Callable
+        output_dir: Path, savename: str, evaluator_fn: Callable
     ) -> pd.DataFrame:
             
         # TODO: Add personas to DiscussionAgent
@@ -110,27 +110,27 @@ class MultiAgentDiscussion:
             ]
             return agent_responses
         
-        starters_1, starters_1_label = starter.batched_generate(df, cfg, batch_size, output_path, 'starter1', evaluator_fn, persona='simple')
-        starters_2, starters_2_label = starter.batched_generate(df, cfg, batch_size, output_path, 'starter2', evaluator_fn, persona='technical')
-        starters_3, starters_3_label = starter.batched_generate(df, cfg, batch_size, output_path, 'starter3', evaluator_fn, persona='thinker')
+        starters_1, starters_1_label = starter.batched_generate(df, cfg, batch_size, output_dir, 'starter1', evaluator_fn, persona='simple')
+        starters_2, starters_2_label = starter.batched_generate(df, cfg, batch_size, output_dir, 'starter2', evaluator_fn, persona='technical')
+        starters_3, starters_3_label = starter.batched_generate(df, cfg, batch_size, output_dir, 'starter3', evaluator_fn, persona='thinker')
 
-        agent_1_discuss_r1, a1r1_label = agent_1.batched_generate(df, cfg, batch_size, output_path, f'agent1_R{1}', evaluator_fn, agent_responses=gather_agent_responses(2, starters_2, 3, starters_3))
-        agent_2_discuss_r1, a2r1_label = agent_2.batched_generate(df, cfg, batch_size, output_path, f'agent2_R{1}', evaluator_fn, agent_responses=gather_agent_responses(1, starters_1, 3, starters_3))
-        agent_3_discuss_r1, a3r1_label = agent_3.batched_generate(df, cfg, batch_size, output_path, f'agent3_R{1}', evaluator_fn, agent_responses=gather_agent_responses(1, starters_1, 2, starters_2))
+        agent_1_discuss_r1, a1r1_label = agent_1.batched_generate(df, cfg, batch_size, output_dir, f'agent1_R{1}', evaluator_fn, agent_responses=gather_agent_responses(2, starters_2, 3, starters_3))
+        agent_2_discuss_r1, a2r1_label = agent_2.batched_generate(df, cfg, batch_size, output_dir, f'agent2_R{1}', evaluator_fn, agent_responses=gather_agent_responses(1, starters_1, 3, starters_3))
+        agent_3_discuss_r1, a3r1_label = agent_3.batched_generate(df, cfg, batch_size, output_dir, f'agent3_R{1}', evaluator_fn, agent_responses=gather_agent_responses(1, starters_1, 2, starters_2))
         
-        verdict_r1, verdict_r1_label = judge.batched_generate(df, cfg, batch_size, output_path, 'judge_r1', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r1, agent_2_discuss_r1, agent_3_discuss_r1))
+        verdict_r1, verdict_r1_label = judge.batched_generate(df, cfg, batch_size, output_dir, 'judge_r1', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r1, agent_2_discuss_r1, agent_3_discuss_r1))
 
-        agent_1_discuss_r2, a1r2_label = agent_1.batched_generate(df, cfg, batch_size, output_path, f'agent1_R{2}', evaluator_fn, agent_responses=gather_agent_responses(2, agent_2_discuss_r1, 3, agent_3_discuss_r1))
-        agent_2_discuss_r2, a2r2_label = agent_2.batched_generate(df, cfg, batch_size, output_path, f'agent2_R{2}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r1, 3, agent_3_discuss_r1))
-        agent_3_discuss_r2, a3r2_label = agent_3.batched_generate(df, cfg, batch_size, output_path, f'agent3_R{2}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r1, 2, agent_2_discuss_r1))
+        agent_1_discuss_r2, a1r2_label = agent_1.batched_generate(df, cfg, batch_size, output_dir, f'agent1_R{2}', evaluator_fn, agent_responses=gather_agent_responses(2, agent_2_discuss_r1, 3, agent_3_discuss_r1))
+        agent_2_discuss_r2, a2r2_label = agent_2.batched_generate(df, cfg, batch_size, output_dir, f'agent2_R{2}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r1, 3, agent_3_discuss_r1))
+        agent_3_discuss_r2, a3r2_label = agent_3.batched_generate(df, cfg, batch_size, output_dir, f'agent3_R{2}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r1, 2, agent_2_discuss_r1))
 
-        verdict_r2, verdict_r2_label = judge.batched_generate(df, cfg, batch_size, output_path, 'judge_r2', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r2, agent_2_discuss_r2, agent_3_discuss_r2))
+        verdict_r2, verdict_r2_label = judge.batched_generate(df, cfg, batch_size, output_dir, 'judge_r2', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r2, agent_2_discuss_r2, agent_3_discuss_r2))
 
-        agent_1_discuss_r3, a1r3_label = agent_1.batched_generate(df, cfg, batch_size, output_path, f'agent1_R{3}', evaluator_fn, agent_responses=gather_agent_responses(2, agent_2_discuss_r2, 3, agent_3_discuss_r2))
-        agent_2_discuss_r3, a2r3_label = agent_2.batched_generate(df, cfg, batch_size, output_path, f'agent2_R{3}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r2, 3, agent_3_discuss_r2))
-        agent_3_discuss_r3, a3r3_label = agent_3.batched_generate(df, cfg, batch_size, output_path, f'agent3_R{3}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r2, 2, agent_2_discuss_r2))
+        agent_1_discuss_r3, a1r3_label = agent_1.batched_generate(df, cfg, batch_size, output_dir, f'agent1_R{3}', evaluator_fn, agent_responses=gather_agent_responses(2, agent_2_discuss_r2, 3, agent_3_discuss_r2))
+        agent_2_discuss_r3, a2r3_label = agent_2.batched_generate(df, cfg, batch_size, output_dir, f'agent2_R{3}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r2, 3, agent_3_discuss_r2))
+        agent_3_discuss_r3, a3r3_label = agent_3.batched_generate(df, cfg, batch_size, output_dir, f'agent3_R{3}', evaluator_fn, agent_responses=gather_agent_responses(1, agent_1_discuss_r2, 2, agent_2_discuss_r2))
 
-        verdict_r3, verdict_r3_label = judge.batched_generate(df, cfg, batch_size, output_path, 'judge_r3', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r3, agent_2_discuss_r3, agent_3_discuss_r3))
+        verdict_r3, verdict_r3_label = judge.batched_generate(df, cfg, batch_size, output_dir, 'judge_r3', evaluator_fn, agent_responses=gather_all_responses(agent_1_discuss_r3, agent_2_discuss_r3, agent_3_discuss_r3))
 
         final_df = pd.concat([
                 df,
@@ -173,6 +173,6 @@ class MultiAgentDiscussion:
             ], 
             axis=1,
         )
-        final_df.to_json(output_path/f"df_{savename}_final.json", orient='records')
+        final_df.to_json(output_dir/f"df_{savename}_final.json", orient='records')
         print('finished discussion')
         return final_df

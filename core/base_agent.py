@@ -17,9 +17,9 @@ def batched(sequence: Sequence, n: int=1):
         yield sequence[ndx:min(ndx + n, l)]
 
 
-def dump_to_json(output_path: Path, filename: str, obj: object) -> None:
-    """ Dumps a list of objects to output_path/filename.json; use for keeping backups. """
-    filepath = output_path / f"{filename}.json"
+def dump_to_json(output_dir: Path, filename: str, obj: object) -> None:
+    """ Dumps a list of objects to output_dir/filename.json; use for keeping backups. """
+    filepath = output_dir / f"{filename}.json"
     filepath.parent.mkdir(parents=True, exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(obj, f, ensure_ascii=False, indent=4)
@@ -117,7 +117,7 @@ class TextToSQL(ABC):
     
     def batched_generate(
         self, df: pd.DataFrame, cfg: SamplingParams, batch_size: int,
-        output_path: Path, savename: str, evaluator_fn: Optional[Callable] = None, 
+        output_dir: Path, savename: str, evaluator_fn: Optional[Callable] = None, 
         **kwargs
     ) -> tuple[TextToSQLGenerationOutput, Optional[list[bool]]]:
         """ Generates SQL from a DataFrame of BIRD questions. 
@@ -148,8 +148,8 @@ class TextToSQL(ABC):
             n_in_tokens.extend(outputs.n_in_tokens)
             n_out_tokens.extend(outputs.n_out_tokens)
             if savename:
-                dump_to_json(output_path, f"{savename}_raw", raw_responses)
-                dump_to_json(output_path, f"{savename}_clean", parsed_sql)
+                dump_to_json(output_dir, f"{savename}_raw", raw_responses)
+                dump_to_json(output_dir, f"{savename}_clean", parsed_sql)
         
         final_output = TextToSQLGenerationOutput(input_prompts, raw_responses, parsed_sql, n_in_tokens, n_out_tokens)
         final_df = pd.concat(
@@ -160,9 +160,9 @@ class TextToSQL(ABC):
         if evaluator_fn:
             labels, report = evaluator_fn(final_df, self.databases, f'parsed_sql_{savename}')
             final_df[f'label_{savename}'] = labels
-            with open(output_path/f'results_{savename}.txt', 'w') as f:
+            with open(output_dir/f'results_{savename}.txt', 'w') as f:
                 f.write(report)
         else:
             labels = None
-        final_df.to_json(output_path / f"df_batgen_{savename}.json", orient='records')
+        final_df.to_json(output_dir / f"df_batgen_{savename}.json", orient='records')
         return final_output, labels
