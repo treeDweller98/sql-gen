@@ -1,10 +1,12 @@
-source secrets.env
+source ".venv/bin/activate"
+source "secrets.env"
+huggingface-cli login --token $HF_TOKEN
+wandb login --relogin $WANDB_API_KEY
 
 experiment="zs"     # zs, rzs, mad, pick, plan, plan-exec
 dataset="spider"    # spider, bird
 seed=42             # 42, 118, 98
-tensor_parallel=2
-
+tensor_parallel=1
 
 zs_models=(
     "qwen25_7b_instruct"
