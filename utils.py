@@ -128,6 +128,7 @@ def read_spider_dataset(
     df = pd.read_json(input_dir / question_filename)
     df.rename(columns={'query': 'gold_sql'}, inplace=True)
     df['question_id'] = range(len(df))
+    df['difficulty'] = 'spider'
     db_names: list[str] = [f.name for f in (input_dir / db_foldername).iterdir() if f.is_dir()]
     databases: dict[str, SQLiteDatabase] = {
         db_id: SQLiteDatabase(db_id, (input_dir / db_foldername), db_exec_timeout, use_cached_schema) 
