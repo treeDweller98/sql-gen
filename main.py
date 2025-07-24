@@ -26,8 +26,6 @@ if __name__ == '__main__':
         project="bappa-sql-logs",
         name=f"{args.EXPERIMENT}_{args.MODEL.value}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
         config=vars(args),
-        redirect_stdout=True,
-        redirect_stderr=True
     )
 
     start_time = datetime.datetime.now()
