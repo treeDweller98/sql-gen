@@ -2,10 +2,9 @@
 /__pycache__
 agents/__pycache__
 core/__pycache__
-grpo/__pycache__
 
 /temp
 /data
 /results
-api_keys.py
-sql-gen.ipynb
+/jobs
+secrets.env
