@@ -1,10 +1,10 @@
 import datetime
+import wandb
 from utils import read_bird_dataset, read_spider_dataset, parse_args
 from sqlgen.experiments import (
     zeroshot_experiment,
     reasoner_zeroshot_experiment,
     discuss_experiment,
-    debate_experiment,
     reasoner_picker_experiment,
     planner_plan_experiment,
     planner_exec_experiment,
@@ -22,10 +22,16 @@ if __name__ == '__main__':
         args.INPUT_PATH, args.QUESTION_FILENAME, args.DB_FOLDERNAME, 
         args.USE_CACHED_SCHEMA, args.DB_EXEC_TIMEOUT, args.IS_DEBUG,
     )
+    wandb.init(
+        project="bappa-sql-logs",
+        name=f"{args.EXPERIMENT}_{args.MODEL.value}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        config=vars(args),
+        redirect_stdout=True,
+        redirect_stderr=True
+    )
 
     start_time = datetime.datetime.now()
     print(f"Starting Experiment: {args.EXPERIMENT} with {args.MODEL.value} at {start_time}")
-
     match args.EXPERIMENT:
         case 'zs':
             zeroshot_experiment(args, df, databases)
@@ -33,8 +39,6 @@ if __name__ == '__main__':
             reasoner_zeroshot_experiment(args, df, databases)
         case 'mad':
             discuss_experiment(args, df, databases)
-        case 'madb':
-            debate_experiment(args, df, databases)
         case 'pick':
             reasoner_picker_experiment(args, df, databases)
         case 'plan':
@@ -43,5 +47,6 @@ if __name__ == '__main__':
             planner_exec_experiment(args, df, databases)
         case _:
             print("INVALID EXPERIMENT SELECTED. ABORTING.")
-
     print(f"End of Experiment: {args.EXPERIMENT} with {args.MODEL.value}.\nTime taken: {datetime.datetime.now() - start_time}")
+    
+    wandb.finish()
