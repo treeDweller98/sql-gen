@@ -62,7 +62,7 @@ fi
 for model in "${models[@]}"; do
     output_dir="results_${dataset}/${experiment}/${model}_${experiment}/"
     mkdir -p "$output_dir"
-    python main.py \
+    python -u main.py \
         --EXPERIMENT "$experiment" \
         --MODEL "$model" \
         --GPU_MEMORY_UTILIZATION "0.97" \
