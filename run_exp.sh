@@ -55,7 +55,7 @@ if [ "$dataset" == "spider" ]; then
 else
     input_dir="data/bird_minidev"
     db_foldername="dev_databases"
-    question_filename="dev.json"
+        question_filename="mini_dev_sqlite.json"
 fi
 
 
