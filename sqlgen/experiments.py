@@ -67,7 +67,7 @@ def planner_exec_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):  
     def compile_plans() -> pd.DataFrame:
-        base_dir = Path('results/rplan')
+        base_dir = Path(f'results_{args.DATASET}/rplan')
         data = {}
         for model_dir in base_dir.iterdir():
             plan_file = model_dir / 'df_batgen_plan.json'
@@ -133,7 +133,7 @@ def reasoner_picker_experiment(
         large_models = {}
         
         matched_dirs = [
-            d for d in Path('results/zs').iterdir() 
+            d for d in Path(f'results_{args.DATASET}/zs').iterdir() 
             if d.is_dir() and any(d.name.startswith(prefix) 
             for prefix in ['gemma3', 'qwen25', 'qwen25_coder'])
         ]
