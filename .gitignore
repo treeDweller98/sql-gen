@@ -1,11 +1,9 @@
 .venv
-/__pycache__
-agents/__pycache__
-core/__pycache__
+**__pycache__**
 
 /temp
 /data
-/results
+/results**
 /jobs
 /wandb
 secrets.env
