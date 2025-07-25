@@ -25,6 +25,7 @@ def zeroshot_experiment(
     outputs, labels = agent_zs.batched_generate(
         df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, evaluate
     )
+    del_llm(llm)
 
 def reasoner_zeroshot_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
@@ -41,6 +42,7 @@ def reasoner_zeroshot_experiment(
     outputs, labels = agent_rzs.batched_generate(
         df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, evaluate
     )
+    del_llm(llm)
 
 
 def planner_plan_experiment(
@@ -58,6 +60,8 @@ def planner_plan_experiment(
     outputs, labels = agent_plan.batched_generate(
         df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, args.EXPERIMENT, None
     )
+    del_llm(llm)
+
 
 def planner_exec_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
@@ -117,6 +121,7 @@ def planner_exec_experiment(
         df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, f"multi_{args.EXPERIMENT}", 
         evaluate, plans=combined_plans, enable_zscot=enable_zscot,
     )
+    del_llm(llm)
 
 
 def reasoner_picker_experiment(
@@ -175,6 +180,7 @@ def reasoner_picker_experiment(
             df, cfg, args.BATCH_SIZE, args.OUTPUT_DIR, f"{size}_{args.EXPERIMENT}", 
             evaluate, coder_outputs=coder_outputs
         )
+    del_llm(llm)
 
 
 def discuss_experiment(
@@ -197,3 +203,4 @@ def discuss_experiment(
         savename=args.EXPERIMENT, 
         evaluator_fn=evaluate, 
     )
+    del_llm(llm)
