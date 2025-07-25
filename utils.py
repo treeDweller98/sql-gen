@@ -84,7 +84,6 @@ def load_llm(args) -> LLM:
 def del_llm(llm: LLM) -> None:
     destroy_model_parallel()
     destroy_distributed_environment()
-    del llm.llm_engine.model_executor
     del llm
     with contextlib.suppress(AssertionError):
         torch.distributed.destroy_process_group()
