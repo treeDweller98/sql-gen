@@ -3,6 +3,8 @@ source "secrets.env"
 huggingface-cli login --token $HF_TOKEN
 wandb login --relogin $WANDB_API_KEY
 
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+
 experiment="zs"     # zs, rzs, mad, pick, plan, plan-exec
 dataset="spider"    # spider, bird
 seed=42             # 42, 118, 98
@@ -65,7 +67,7 @@ for model in "${models[@]}"; do
     python -u main.py \
         --EXPERIMENT "$experiment" \
         --MODEL "$model" \
-        --GPU_MEMORY_UTILIZATION "0.97" \
+        --GPU_MEMORY_UTILIZATION "0.90" \
         --TENSOR_PARALLEL_SIZE "$tensor_parallel" \
         --MAX_MODEL_LEN "8192" \
         --DISTRIBUTED_EXECUTOR_BACKEND "mp" \
