@@ -54,7 +54,7 @@ def planner_plan_experiment(
         top_p=0.95,
         top_k=30,
         repetition_penalty=1.0,
-        max_tokens=4096*4,
+        max_tokens=4096*2,
     )
     agent_plan = PlannerAgent(llm, databases)
     outputs, labels = agent_plan.batched_generate(
@@ -73,7 +73,7 @@ def planner_exec_experiment(
             plan_file = model_dir / 'df_batgen_plan.json'
             if plan_file.is_file():
                 plan_df = pd.read_json(plan_file)
-                plan_df.loc[plan_df['n_out_tokens_plan'] > 8192, 'parsed_sql_plan'] = (
+                plan_df.loc[plan_df['n_out_tokens_plan'] > 1024*7, 'parsed_sql_plan'] = (
                     "Plan corrupted. You will have to figure it out yourself"
                 )
                 data[model_dir.name] = plan_df['parsed_sql_plan'].to_list()
