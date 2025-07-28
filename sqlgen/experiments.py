@@ -67,7 +67,7 @@ def planner_exec_experiment(
     args, df: pd.DataFrame, databases: dict[str, SQLiteDatabase],
 ):  
     def compile_plans() -> pd.DataFrame:
-        base_dir = Path(f'results_{args.DATASET}/rplan')
+        base_dir = Path(f'results_{args.DATASET}/plan')
         data = {}
         for model_dir in base_dir.iterdir():
             plan_file = model_dir / 'df_batgen_plan.json'
