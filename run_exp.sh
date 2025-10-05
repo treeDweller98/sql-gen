@@ -1,43 +1,45 @@
+#!/bin/bash
+set -e
 source ".venv/bin/activate"
 source "secrets.env"
-huggingface-cli login --token $HF_TOKEN
-wandb login --relogin $WANDB_API_KEY
+huggingface-cli login --token "$HF_TOKEN"
+wandb login --relogin "$WANDB_API_KEY"
 
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 
 experiment="zs"     # zs, rzs, mad, pick, plan, plan-exec
-dataset="spider"    # spider, bird
+dataset="bird"    # spider, bird
 seed=42             # 42, 118, 98
 tensor_parallel=1
 
 zs_models=(
     "qwen25_7b_instruct"
     "qwen25_14b_instruct"
-    "qwen25_32b_instruct"
+    # "qwen25_32b_instruct"
     "qwen25_coder_7b_instruct"
     "qwen25_coder_14b_instruct"
-    "qwen25_coder_32b_instruct"
-    "gemma3_4b_it"
+    # "qwen25_coder_32b_instruct"
+    # "gemma3_4b_it"
     "gemma3_12b_it"
-    "gemma3_27b_it"
+    # "gemma3_27b_it"
     "codellama_7b_instruct"
     "codellama_13b_instruct"
-    "codellama_34b_instruct"
+    # "codellama_34b_instruct"
     "granite_32_8b_instruct"
     "granite_33_8b_instruct"
     "deepseek_v2_lite_chat"
     "deepseek_coder_v2_lite_instruct"
-    "ministral_8b_instruct"
-    "mistral_small_24b_instruct"
-    "llama3_8b_instruct"
-    "llama31_8b_instruct"
+    # "ministral_8b_instruct"
+    # "mistral_small_24b_instruct"
+    # "llama3_8b_instruct"
+    # "llama31_8b_instruct"
     "starcoder_15b_instruct"
 )
 rzs_models=(
     "deepseek_r1_qwen_7b"
     "deepseek_r1_qwen_14b"
-    "deepseek_r1_qwen_32b"
-    "qwq_32b"
+    # "deepseek_r1_qwen_32b"
+    # "qwq_32b"
 )
 
 
@@ -57,7 +59,7 @@ if [ "$dataset" == "spider" ]; then
 else
     input_dir="data/bird_minidev"
     db_foldername="dev_databases"
-        question_filename="mini_dev_sqlite.json"
+    question_filename="mini_dev_sqlite.json"
 fi
 
 
