@@ -1,66 +1,51 @@
-### core/birdeval.py
-import datetime
+from datetime import datetime
+
 import pandas as pd
-from tqdm import tqdm
+
 from core.dbhandler import SQLiteDatabase
-
-def get_correctness_labels(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str) -> list[bool]:
-    ''' Takes DataFrame of BIRD questions with prediction column.
-        Runs gold and predicted SQL queries on databases given.
-        Returns labels, where labels[i] is True where pred_sql results same as ground_sql's
-    '''
-    labels = []
-    for i, question in tqdm(df.iterrows(), desc='Executing SQL', total=len(df)):
-        db = databases[question['db_id']]
-        try:
-            pred_res = db.run_query(question[pred_col])
-            true_res = db.run_query(question[true_col])
-        except Exception as e:
-            print(f"Q_{question['question_id']}: {e.__class__.__name__} {e}")
-            labels.append(False)
-        else:
-            labels.append( set(pred_res) == set(true_res) )
-    return labels
+from core.metrics.eval_acc import calculate_accuracy
+from core.metrics.eval_f1 import calculate_soft_f1
+from core.metrics.eval_ves import calculate_rves
 
 
-def calculate_accuracy(df: pd.DataFrame, pred_col: str, true_col: str, labels: list[bool]) -> str:
-    ex_report = (
-        f"=== EX Results | TrueCol: {true_col} | PredCol: {pred_col} ===\n"
-        f"Accuracy : {(sum(labels) / len(labels)) * 100: .3f}%\n"
-        "Breakdown by Difficulty:\n"
-    )    
-    for difficulty in df['difficulty'].unique():
-        difficulty_mask = df['difficulty'] == difficulty
-        correct_rows = [label for label, mask in zip(labels, difficulty_mask) if mask]
-        n_correct = sum(correct_rows)
-        n_total = sum(difficulty_mask)
-        sub_accuracy = (n_correct / n_total) * 100
-        ex_report += f"\t{difficulty}: {sub_accuracy: .3f}% ({n_correct} of {n_total})\n"
-    ex_report += '=== end ===\n'
-    return ex_report
+def evaluate(
+    df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = "gold_sql"
+) -> tuple[list[bool], str]:
+    print(f"\n--- Evaluating Performance | TrueCol: {true_col} | PredCol: {pred_col} ---")
+    start_time = datetime.now()
+
+    labels, ex_report = calculate_accuracy(df, databases, pred_col, true_col)
+
+    print(ex_report)
+    print(
+        f"--- Evaluation Completed in {datetime.now() - start_time} | TrueCol: {true_col} | PredCol: {pred_col} ---\n"
+    )
+    return labels, str(ex_report)
 
 
-# # TODO: add soft-f1 score to report
-def calculate_softf1():
-    raise NotImplementedError
-def calculate_ves():
-    raise NotImplementedError
-def calculate_rves():
-    raise NotImplementedError
+def evaluate_all_metrics(
+    df: pd.DataFrame,
+    databases: dict[str, SQLiteDatabase],
+    pred_col: str,
+    true_col: str,
+    iterate_num: int,
+    meta_timeout: float,
+    num_cpus: int,
+):
+    start_time = datetime.now()
 
-    
-def evaluate(df: pd.DataFrame, databases: dict[str, SQLiteDatabase], pred_col: str, true_col: str = 'gold_sql') -> tuple[list[bool], str]:
-    print(f'\n--- Evaluating Performance | TrueCol: {true_col} | PredCol: {pred_col} ---')
-    start_time = datetime.datetime.now()
+    _, ex_report = calculate_accuracy(df, databases, pred_col, true_col, meta_timeout, num_cpus, suppress_prints=True)
+    print(f"EX calculated (elapsed {datetime.now() - start_time})\n{ex_report}\n")
 
-    labels = get_correctness_labels(df, databases, pred_col, true_col)
-    ex_report = calculate_accuracy(df, pred_col, true_col, labels)
-    # f1_report = calculate_softf1(df, pred_col, true_col, labels)
-    # ves_report = calculate_ves(df, pred_col, true_col, labels)
-    # rves_report = calculate_rves(df, pred_col, true_col, labels)
+    f1_report = calculate_soft_f1(df, databases, pred_col, true_col, meta_timeout, num_cpus)
+    print(f"Soft-F1 calculated (elapsed {datetime.now() - start_time})\n{f1_report}\n")
 
-    # report = "\n\n".join(ex_report, f1_report, ves_report, rves_report)
-    report = ex_report      # until the rest gets implemented
-    print(report)
-    print(f'--- Evaluation Completed in {datetime.datetime.now() - start_time} | TrueCol: {true_col} | PredCol: {pred_col} ---\n')
-    return labels, report
+    rves_report = calculate_rves(df, databases, pred_col, true_col, iterate_num, meta_timeout, num_cpus)
+    print(f"R-VES calculated (elapsed {datetime.now() - start_time})\n{rves_report}")
+
+    report = {
+        "ex_report": ex_report,
+        "f1_report": f1_report,
+        "rves_report": rves_report,
+    }
+    return report
