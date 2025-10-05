@@ -100,7 +100,7 @@ def read_bird_dataset(
     input_dir: Path,
     question_filename: str,
     db_foldername: str,
-    use_cached_schema: bool,
+    use_cached_schema: Path | None,
     db_exec_timeout: float,
     is_debug: bool = False,
 ) -> tuple[pd.DataFrame, dict[str, SQLiteDatabase]]:
@@ -131,7 +131,7 @@ def read_spider_dataset(
     input_dir: Path,
     question_filename: str,
     db_foldername: str,
-    use_cached_schema: bool,
+    use_cached_schema: Path | None,
     db_exec_timeout: float,
     is_debug: bool = False,
 ):
@@ -268,6 +268,7 @@ def parse_args():
     args.MODEL = SupportedModels[args.MODEL]
     args.INPUT_DIR = Path(args.INPUT_DIR)
     args.OUTPUT_DIR = Path(args.OUTPUT_DIR)
+    args.USE_CACHED_SCHEMA = Path(args.USE_CACHED_SCHEMA) if args.USE_CACHED_SCHEMA else None
 
     # Print the configurations to confirm
     print(f"Experiment: {args.EXPERIMENT}")

@@ -34,7 +34,7 @@ def get_databases(dataset: str):
         input_dir,
         question_filename,
         db_foldername,
-        False,
+        None,
         30.0,
         False,
     )
