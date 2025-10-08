@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir -p sql-gen/
+git clone https://github.com/treeDweller98/sql-gen.git
 cd sql-gen/
 
 python -m venv .venv
